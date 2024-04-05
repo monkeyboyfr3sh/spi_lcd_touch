@@ -105,4 +105,7 @@ esp_err_t qmi8658_write_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *d
 esp_err_t qmi8658_read_byte(i2c_port_t i2c_num, uint8_t reg_addr, uint8_t *data);
 esp_err_t qmi8658_read_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *data, size_t len);
 
-esp_err_t qmi8658_read_sensor(i2c_port_t i2c_num, acc_axes_raw_t *acc);
+esp_err_t qmi8658_read_accelerometer(i2c_port_t i2c_num, acc_axes_raw_t *acc);
+esp_err_t qmi8658_read_gyro(i2c_port_t i2c_num, gyro_axes_raw_t *gyro);
+esp_err_t qmi8658_read_temperature(i2c_port_t i2c_num, int16_t *temp);
+

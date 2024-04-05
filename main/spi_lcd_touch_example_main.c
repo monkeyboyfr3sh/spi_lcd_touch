@@ -283,7 +283,7 @@ static void example_lvgl_port_task(void *arg)
             //     printf("Failed to read accelerometer data\n");
             // }
 
-            qmi8658_read_sensor(I2C_MASTER_NUM, &acc);
+            qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
 
             ESP_LOGI("main","%d, %d, %d", acc.x, acc.y, acc.z);
             update_coordinate_labels(acc.x, acc.y, acc.z);

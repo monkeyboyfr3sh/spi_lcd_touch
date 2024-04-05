@@ -71,7 +71,7 @@ esp_err_t qmi8658_read_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *da
     return ret;
 }
 
-esp_err_t qmi8658_read_sensor(i2c_port_t i2c_num, acc_axes_raw_t *acc)
+esp_err_t qmi8658_read_accelerometer(i2c_port_t i2c_num, acc_axes_raw_t *acc)
 {
 
     uint8_t acc_x_hi, acc_x_lo;
@@ -91,24 +91,41 @@ esp_err_t qmi8658_read_sensor(i2c_port_t i2c_num, acc_axes_raw_t *acc)
     acc->y = (((int16_t)(acc_y_hi << 8)) | ((int16_t)(acc_y_lo << 0)));
     acc->z = (((int16_t)(acc_z_hi << 8)) | ((int16_t)(acc_z_lo << 0)));
 
-    // // read accelerometer data
-    // int16_t acc_x = (((int16_t)qmi8658_read(QMI8658_ACC_X_H) << 8) | this->qmi8658_read(QMI8658_ACC_X_L));
-    // int16_t acc_y = (((int16_t)this->qmi8658_read(QMI8658_ACC_Y_H) << 8) | this->qmi8658_read(QMI8658_ACC_Y_L));
-    // int16_t acc_z = (((int16_t)this->qmi8658_read(QMI8658_ACC_Z_H) << 8) | this->qmi8658_read(QMI8658_ACC_Z_L));
-    // data->acc_xyz.x = (float)acc_x/qmi_ctx.acc_sensitivity;
-    // data->acc_xyz.y = (float)acc_y/qmi_ctx.acc_sensitivity;
-    // data->acc_xyz.z = (float)acc_z/qmi_ctx.acc_sensitivity;
 
-    // // read gyroscope data
-    // int16_t rot_x = (((int16_t)this->qmi8658_read(QMI8658_GYR_X_H) << 8) | this->qmi8658_read(QMI8658_GYR_X_L));
-    // int16_t rot_y = (((int16_t)this->qmi8658_read(QMI8658_GYR_Y_H) << 8) | this->qmi8658_read(QMI8658_GYR_Y_L));
-    // int16_t rot_z = (((int16_t)this->qmi8658_read(QMI8658_GYR_Z_H) << 8) | this->qmi8658_read(QMI8658_GYR_Z_L));
-    // data->gyro_xyz.x = (float)rot_x/qmi_ctx.gyro_sensitivity;
-    // data->gyro_xyz.y = (float)rot_y/qmi_ctx.gyro_sensitivity;
-    // data->gyro_xyz.z = (float)rot_z/qmi_ctx.gyro_sensitivity;
-
-    // // read temperature data
-    // int16_t temp = (((int16_t)this->qmi8658_read(QMI8658_TEMP_H) << 8) | this->qmi8658_read(QMI8658_TEMP_L));
-    // data->temperature = (float)temp/TEMPERATURE_SENSOR_RESOLUTION;
     return ESP_OK;
+}
+
+esp_err_t qmi8658_read_gyro(i2c_port_t i2c_num, gyro_axes_raw_t *gyro)
+{
+
+    uint8_t gyro_x_hi, gyro_x_lo;
+    uint8_t gyro_y_hi, gyro_y_lo;
+    uint8_t gyro_z_hi, gyro_z_lo;
+
+    qmi8658_read_byte(i2c_num, QMI8658_ACC_X_H, &gyro_x_hi);
+    qmi8658_read_byte(i2c_num, QMI8658_ACC_X_L, &gyro_x_lo);
+    
+    qmi8658_read_byte(i2c_num, QMI8658_ACC_Y_H, &gyro_y_hi);
+    qmi8658_read_byte(i2c_num, QMI8658_ACC_Y_L, &gyro_y_lo);
+
+    qmi8658_read_byte(i2c_num, QMI8658_ACC_Z_H, &gyro_z_hi);
+    qmi8658_read_byte(i2c_num, QMI8658_ACC_Z_L, &gyro_z_lo);
+
+    gyro->x = (((int16_t)(gyro_x_hi << 8)) | ((int16_t)(gyro_x_lo << 0)));
+    gyro->y = (((int16_t)(gyro_y_hi << 8)) | ((int16_t)(gyro_y_lo << 0)));
+    gyro->z = (((int16_t)(gyro_z_hi << 8)) | ((int16_t)(gyro_z_lo << 0)));
+
+    return ESP_OK;
+}
+
+esp_err_t qmi8658_read_temperature(i2c_port_t i2c_num, int16_t *temp)
+{
+    // read temperature data
+    uint8_t temp_hi, temp_lo;
+    qmi8658_read_byte(i2c_num, QMI8658_TEMP_H, &temp_hi);
+    qmi8658_read_byte(i2c_num, QMI8658_TEMP_L, &temp_lo);
+
+    *temp = (((int16_t)(temp_hi << 8)) | ((int16_t)(temp_lo << 0)));
+
+    return ESP_OK;    
 }
