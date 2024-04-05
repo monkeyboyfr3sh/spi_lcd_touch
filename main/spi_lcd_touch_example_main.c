@@ -258,7 +258,7 @@ static void example_lvgl_port_task(void *arg)
         float x = ((float)acc.x/16384.0) * 9.81;
         float y = ((float)acc.y/16384.0) * 9.81;
         float z = ((float)acc.z/16384.0) * 9.81;
-        ESP_LOGI("main","%f, %f, %f", x, y, z);
+        // ESP_LOGI("main","%f, %f, %f", x, y, z);
 
         // Lock the mutex due to the LVGL APIs are not thread-safe
         if (example_lvgl_lock(-1)) {
