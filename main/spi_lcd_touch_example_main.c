@@ -37,7 +37,7 @@ static const char *TAG = "example";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (20 * 1000 * 1000)
+#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
 #define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL  1
 #define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
 #define EXAMPLE_PIN_NUM_SCLK           10
@@ -61,7 +61,7 @@ static const char *TAG = "example";
 #define EXAMPLE_LCD_CMD_BITS           8
 #define EXAMPLE_LCD_PARAM_BITS         8
 
-#define EXAMPLE_LVGL_TICK_PERIOD_MS    25
+#define EXAMPLE_LVGL_TICK_PERIOD_MS    5
 #define EXAMPLE_LVGL_TASK_MAX_DELAY_MS 10
 #define EXAMPLE_LVGL_TASK_MIN_DELAY_MS 1
 #define EXAMPLE_LVGL_TASK_STACK_SIZE   (4 * 1024)
@@ -225,7 +225,7 @@ static void example_lvgl_port_task(void *arg)
     // Initialize I2C
     i2c_master_init();
     
-    qmi8658_write_byte(I2C_MASTER_NUM, 0x03,0x0d); // Set data rate
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x03,acc_odr_11); // Set data rate
     qmi8658_write_byte(I2C_MASTER_NUM, 0x08,0x01); // Enable accelerometer
 
     uint8_t write_byte;
@@ -422,12 +422,5 @@ void app_main(void)
         example_lvgl_demo_ui(disp);
         // Release the mutex
         example_lvgl_unlock();
-    }
-
-    // Main loop
-    while (1) {
-
-        
-        vTaskDelay(pdMS_TO_TICKS(100)); // Delay for a while to not spam the output
     }
 }
