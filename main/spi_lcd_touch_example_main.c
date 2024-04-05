@@ -191,6 +191,8 @@ void example_lvgl_unlock(void)
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2c.h"
+#include "qmi8658.h"
+#include "lvgl_demo_ui.h"
 
 // I2C Configuration
 #define I2C_MASTER_SCL_IO           7        // GPIO number for I2C master clock
@@ -200,15 +202,7 @@ void example_lvgl_unlock(void)
 #define I2C_MASTER_RX_BUF_DISABLE   0         // I2C master no buffer needed
 #define I2C_MASTER_FREQ_HZ          400000    // I2C master clock frequency
 
-// QMI8658 I2C Address
-#define QMI8658_ADDR                0x6B      // I2C address of QMI8658 IMU
 
-// QMI8658 I2C Address and Registers
-#define QMI8658_ADDR                0x6B     // I2C address of QMI8658 IMU
-#define QMI8658_WHOAMI              0x00     // Who Am I register address
-#define QMI8658_CTRL_REG1           0x02    // Control register 1 (You need to replace ... with the actual address)
-// #define QMI8658_OUTPUT_DATA_RATE    0x...    // Output data rate setting (You need to replace ... with your desired setting)
-#define QMI8658_REG_XOUT_L          0x35     // X-axis output low byte register address
 
 // Function to initialize I2C
 static void i2c_master_init() {
@@ -223,54 +217,6 @@ static void i2c_master_init() {
     i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
-// Function to read a single byte from the QMI8658
-static esp_err_t qmi8658_write_byte(uint8_t reg_addr, uint8_t data) {
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (QMI8658_ADDR << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, reg_addr, true);
-    i2c_master_write_byte(cmd, data, true);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(1000));
-    i2c_cmd_link_delete(cmd);
-    return ret;
-}
-
-// Function to read a single byte from the QMI8658
-static esp_err_t qmi8658_read_byte(uint8_t reg_addr, uint8_t *data) {
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (QMI8658_ADDR << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, reg_addr, true);
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (QMI8658_ADDR << 1) | I2C_MASTER_READ, true);
-    i2c_master_read_byte(cmd, data, I2C_MASTER_NACK);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(1000));
-    i2c_cmd_link_delete(cmd);
-    return ret;
-}
-
-// Function to read multiple bytes from the QMI8658
-static esp_err_t qmi8658_read_bytes(uint8_t start_addr, uint8_t *data, size_t len) {
-    if (len == 0) return ESP_OK; // No need to read anything
-
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (QMI8658_ADDR << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, start_addr, true);
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (QMI8658_ADDR << 1) | I2C_MASTER_READ, true);
-    if (len > 1) {
-        i2c_master_read(cmd, data, len - 1, I2C_MASTER_ACK);
-    }
-    i2c_master_read_byte(cmd, data + len - 1, I2C_MASTER_NACK);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(1000));
-    i2c_cmd_link_delete(cmd);
-    return ret;
-}
-
 static void example_lvgl_port_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL task");
@@ -279,17 +225,29 @@ static void example_lvgl_port_task(void *arg)
     // Initialize I2C
     i2c_master_init();
     
-    qmi8658_write_byte(0x03,0x0f); // Set data rate
-    qmi8658_write_byte(0x08,0x01); // Enable accelerometer
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x03,0x0d); // Set data rate
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x08,0x01); // Enable accelerometer
+
+    uint8_t write_byte;
+    uint8_t read_byte;
+    for(int i = 0; i<64;i++)
+    {
+        write_byte = (uint8_t)i;
+        qmi8658_write_byte(I2C_MASTER_NUM, 0x08, write_byte); // Enable accelerometer
+        qmi8658_read_byte(I2C_MASTER_NUM, 0x08, &read_byte);
+        ESP_LOGI(TAG,"wr:0x%02x; rd:0x%02x", write_byte, read_byte);
+    }
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x08,0x01); // Enable accelerometer
 
     // Read WHOAMI register to verify communication
-    if (qmi8658_read_byte(QMI8658_WHOAMI, &whoami) == ESP_OK) {
+    if (qmi8658_read_byte(I2C_MASTER_NUM, 0x00, &whoami) == ESP_OK) {
         printf("QMI8658 WHOAMI: 0x%02X\n", whoami);
     } else {
         printf("Failed to communicate with QMI8658\n");
         return;
     }
- 
+    
+    acc_axes_raw_t acc;
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     while (1) {
         // Lock the mutex due to the LVGL APIs are not thread-safe
@@ -297,33 +255,38 @@ static void example_lvgl_port_task(void *arg)
             task_delay_ms = lv_timer_handler();
 
             // // Read WHOAMI register to verify communication
-            // if (qmi8658_read_byte(0x08, &whoami) == ESP_OK) {
+            // if (qmi8658_read_byte(I2C_MASTER_NUM, 0x08, &whoami) == ESP_OK) {
             //     printf("QMI8658 WHOAMI: 0x%02X\n", whoami);
             // } else {
             //     printf("Failed to communicate with QMI8658\n");
             //     continue;
             // }
             
-            // Read accelerometer data
-            uint8_t accel_data[6]; // 3 axes, 2 bytes each
-            if (qmi8658_read_bytes(QMI8658_REG_XOUT_L, accel_data, sizeof(accel_data)) == ESP_OK) {
+            // // Read accelerometer data
+            // uint8_t accel_data[6]; // 3 axes, 2 bytes each
+            // if (qmi8658_read_bytes(I2C_MASTER_NUM, 0x35, accel_data, sizeof(accel_data)) == ESP_OK) {
 
-                int ms_now = pdTICKS_TO_MS(xTaskGetTickCount());
-                set_display_number( (ms_now/100)%101 );
+            //     int ms_now = pdTICKS_TO_MS(xTaskGetTickCount());
+            //     set_display_number( (ms_now/100)%101 );
 
-                int16_t x_accel = (int16_t)((accel_data[1] << 8) | accel_data[0]);
-                int16_t y_accel = (int16_t)((accel_data[3] << 8) | accel_data[2]);
-                int16_t z_accel = (int16_t)((accel_data[5] << 8) | accel_data[4]);
-                double magnitude = sqrt(x_accel * x_accel + y_accel * y_accel + z_accel * z_accel);
-                // Clear the line using ANSI escape code
+            //     int16_t x_accel = (int16_t)((accel_data[1] << 8) | accel_data[0]);
+            //     int16_t y_accel = (int16_t)((accel_data[3] << 8) | accel_data[2]);
+            //     int16_t z_accel = (int16_t)((accel_data[5] << 8) | accel_data[4]);
+            //     double magnitude = sqrt(x_accel * x_accel + y_accel * y_accel + z_accel * z_accel);
+            //     // Clear the line using ANSI escape code
 
-                // Print the vector norm
-                // printf("\033[KVector norm: %f\r", magnitude);
-                set_display_number( (ms_now/100)%101 );
-                printf("\033[KAccelerometer Data: X=%d, Y=%d, Z=%d\r", x_accel, y_accel, z_accel);   // Calculate the vector norm
-            } else {
-                printf("Failed to read accelerometer data\n");
-            }
+            //     // Print the vector norm
+            //     // printf("\033[KVector norm: %f\r", magnitude);
+            //     set_display_number( (ms_now/100)%101 );
+            //     printf("\033[KAccelerometer Data: X=0x%08x, Y=0x%08x, Z=0x%08x\r", x_accel, y_accel, z_accel);   // Calculate the vector norm
+            // } else {
+            //     printf("Failed to read accelerometer data\n");
+            // }
+
+            qmi8658_read_sensor(I2C_MASTER_NUM, &acc);
+
+            ESP_LOGI("main","%d, %d, %d", acc.x, acc.y, acc.z);
+            update_coordinate_labels(acc.x, acc.y, acc.z);
 
             // Release the mutex
             example_lvgl_unlock();

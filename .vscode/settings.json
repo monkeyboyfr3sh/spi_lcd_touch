@@ -5,5 +5,12 @@
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
     "board/esp32s3-bridge.cfg"
-  ]
+  ],
+  "files.associations": {
+    "qmi8658.h": "c",
+    "stdio.h": "c",
+    "i2c.h": "c",
+    "esp_err.h": "c",
+    "lvgl_demo_ui.h": "c"
+  }
 }
