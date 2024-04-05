@@ -17,14 +17,14 @@ static void update_obect(lv_obj_t *object_x, lv_obj_t *object_y, lv_obj_t *objec
     char str_x[20];
     char str_y[20];
     char str_z[20];
-    sprintf(str_x, "x: %0.2f", new_x);
-    sprintf(str_y, "y: %0.2f", new_y);
-    sprintf(str_z, "z: %0.2f", new_z);
+    sprintf(str_x, "x=%0.2f", new_x);
+    sprintf(str_y, "y=%0.2f", new_y);
+    sprintf(str_z, "z=%0.2f", new_z);
 
     // Update bars
-    lv_bar_set_value(bar_x, (int32_t)new_x, LV_ANIM_OFF);
-    lv_bar_set_value(bar_y, (int32_t)new_y, LV_ANIM_OFF);
-    lv_bar_set_value(bar_z, (int32_t)new_z, LV_ANIM_OFF);
+    lv_bar_set_value(bar_x, (int32_t)new_x*100.0, LV_ANIM_OFF);
+    lv_bar_set_value(bar_y, (int32_t)new_y*100.0, LV_ANIM_OFF);
+    lv_bar_set_value(bar_z, (int32_t)new_z*100.0, LV_ANIM_OFF);
 
     // Update text of the labels
     lv_label_set_text(object_x, str_x);
@@ -44,35 +44,33 @@ void example_lvgl_demo_ui(lv_disp_t *disp) {
     bar_y = lv_bar_create(scr);
     bar_z = lv_bar_create(scr);
 
-    int range = 8;
+    int range = 900;
 
     // Set range and initial values for each bar
     lv_bar_set_range(bar_x, -range, range); // Define the range for x
-    lv_bar_set_value(bar_x, 10, LV_ANIM_OFF);
-    lv_obj_align(bar_x, LV_ALIGN_CENTER, 0, -40);
+    lv_obj_align(bar_x, LV_ALIGN_CENTER, 0, -60);
+    lv_obj_set_width(bar_x, 200); // Set the width of the bar
+    lv_obj_set_height(bar_x, 30); // Set the width of the bar
 
     lv_bar_set_range(bar_y, -range, range); // Define the range for x
-    lv_bar_set_value(bar_y, 10, LV_ANIM_OFF);
     lv_obj_align(bar_y, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_width(bar_y, 200); // Set the width of the bar
+    lv_obj_set_height(bar_y, 30); // Set the width of the bar
 
     lv_bar_set_range(bar_z, -range, range); // Define the range for x
-    lv_bar_set_value(bar_z, 10, LV_ANIM_OFF);
-    lv_obj_align(bar_z, LV_ALIGN_CENTER, 0, 40);
+    lv_obj_align(bar_z, LV_ALIGN_CENTER, 0, 60);
+    lv_obj_set_width(bar_z, 200); // Set the width of the bar
+    lv_obj_set_height(bar_z, 30); // Set the width of the bar
 
     // Create text labels
     label_x = lv_label_create(scr);
     label_y = lv_label_create(scr);
     label_z = lv_label_create(scr);
 
-    // Set initial text for each label
-    lv_label_set_text(label_x, "x: 10");
-    lv_label_set_text(label_y, "y: 20");
-    lv_label_set_text(label_z, "z: 30");
-
     // Align labels to the center of the screen
-    lv_obj_align(label_x, LV_ALIGN_CENTER, 0, -40);
+    lv_obj_align(label_x, LV_ALIGN_CENTER, 0, -60);
     lv_obj_align(label_y, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_align(label_z, LV_ALIGN_CENTER, 0, 40);
+    lv_obj_align(label_z, LV_ALIGN_CENTER, 0, 60);
 
     // Example of updating the labels
     update_bars(15, 25, 35);
