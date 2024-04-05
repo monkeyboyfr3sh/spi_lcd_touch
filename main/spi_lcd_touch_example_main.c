@@ -193,6 +193,7 @@ void example_lvgl_unlock(void)
 #include "driver/i2c.h"
 #include "qmi8658.h"
 #include "lvgl_demo_ui.h"
+#include "circular_integrator.h"
 
 // I2C Configuration
 #define I2C_MASTER_SCL_IO           7        // GPIO number for I2C master clock
@@ -206,6 +207,7 @@ void example_lvgl_unlock(void)
 
 // Function to initialize I2C
 static void i2c_master_init() {
+    //FIXME: Pretty sure we need to make sure we're setting all of the parameters inside this struct
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = I2C_MASTER_SDA_IO;
@@ -220,8 +222,14 @@ static void i2c_master_init() {
 static void example_lvgl_port_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL task");
-    uint8_t whoami;
     
+    size_t buff_len = 6;
+    CircularBuffer buff_x, buff_y, buff_z;
+    initializeCircularBuffer(&buff_x, buff_len);
+    initializeCircularBuffer(&buff_y, buff_len);
+    initializeCircularBuffer(&buff_z, buff_len);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
     // Initialize I2C
     i2c_master_init();
     
@@ -240,13 +248,14 @@ static void example_lvgl_port_task(void *arg)
     qmi8658_write_byte(I2C_MASTER_NUM, 0x08,0x01); // Enable accelerometer
 
     // Read WHOAMI register to verify communication
+    uint8_t whoami;
     if (qmi8658_read_byte(I2C_MASTER_NUM, 0x00, &whoami) == ESP_OK) {
         printf("QMI8658 WHOAMI: 0x%02X\n", whoami);
     } else {
         printf("Failed to communicate with QMI8658\n");
         return;
     }
-    
+
     acc_axes_raw_t acc;
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     while (1) {
@@ -254,10 +263,19 @@ static void example_lvgl_port_task(void *arg)
         // Read accelerometer
         qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
 
+        // Add samples
+        addSample(&buff_x, acc.x);
+        addSample(&buff_y, acc.y);
+        addSample(&buff_z, acc.z);
+        
+        int avg_x = getAccumulatedSum(&buff_x)/buff_x.size;
+        int avg_y = getAccumulatedSum(&buff_y)/buff_y.size;
+        int avg_z = getAccumulatedSum(&buff_z)/buff_z.size;
+    
         // Calculate g
-        float x = ((float)acc.x/16384.0) * 9.81;
-        float y = ((float)acc.y/16384.0) * 9.81;
-        float z = ((float)acc.z/16384.0) * 9.81;
+        float x = ((float)avg_x/16384.0) * 9.81;
+        float y = ((float)avg_y/16384.0) * 9.81;
+        float z = ((float)avg_z/16384.0) * 9.81;
         // ESP_LOGI("main","%f, %f, %f", x, y, z);
 
         // Lock the mutex due to the LVGL APIs are not thread-safe
