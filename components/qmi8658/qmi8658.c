@@ -5,6 +5,8 @@
 #include "qmi8658.h"
 #include "qmi8658_def.h"
 
+static const char *TAG = "qmi8658-dr";
+
 // Function to read a single byte from the QMI8658
 esp_err_t qmi8658_write_byte(i2c_port_t i2c_num, uint8_t reg_addr, uint8_t data)
 {
@@ -69,6 +71,11 @@ esp_err_t qmi8658_read_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *da
     esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, QMI8658_TIMEOUT);
     i2c_cmd_link_delete(cmd);
     return ret;
+}
+
+esp_err_t qmi8658_configure(i2c_port_t i2c_num, qmi8658_cfg_t cfg)
+{
+    return ESP_OK;
 }
 
 esp_err_t qmi8658_read_accelerometer(i2c_port_t i2c_num, acc_axes_raw_t *acc)

@@ -3,21 +3,20 @@
 #include <esp_err.h>
 #include "driver/i2c.h"
 
+/* Enum representing the scale settings for the accelerometer */
+typedef enum {
+    acc_scale_2g = 0x0,    // Accelerometer scale set to ±2g.
+    acc_scale_4g = 0x1,        // Accelerometer scale set to ±4g.
+    acc_scale_8g = 0x2,        // Accelerometer scale set to ±8g.
+    acc_scale_16g = 0x3,       // Accelerometer scale set to ±16g.
+} acc_scale_t;
+
 /* Enum representing the output data rate (ODR) settings for the accelerometer */
 typedef enum {
-    acc_odr_8000,      // Accelerometer ODR set to 8000 Hz.
-    acc_odr_4000,      // Accelerometer ODR set to 4000 Hz.
-    acc_odr_2000,      // Accelerometer ODR set to 2000 Hz.
-    acc_odr_1000,      // Accelerometer ODR set to 1000 Hz.
-    acc_odr_500,       // Accelerometer ODR set to 500 Hz.
-    acc_odr_250,       // Accelerometer ODR set to 250 Hz.
-    acc_odr_125,       // Accelerometer ODR set to 125 Hz.
-    acc_odr_62_5,      // Accelerometer ODR set to 62.5 Hz.
-    acc_odr_31_25,     // Accelerometer ODR set to 31.25 Hz.
-    acc_odr_128 = 12,  // Accelerometer ODR set to 128 Hz.
-    acc_odr_21,        // Accelerometer ODR set to 21 Hz.
-    acc_odr_11,        // Accelerometer ODR set to 11 Hz.
-    acc_odr_3,         // Accelerometer ODR set to 3 Hz.
+    acc_odr_128         = 0xc,        // Accelerometer ODR set to 128 Hz.
+    acc_odr_21          = 0xd,        // Accelerometer ODR set to 21 Hz.
+    acc_odr_11          = 0xe,        // Accelerometer ODR set to 11 Hz.
+    acc_odr_3           = 0xf,         // Accelerometer ODR set to 3 Hz.
 } acc_odr_t;
 
 /* Enum representing the output data rate (ODR) settings for the gyroscope */
@@ -32,14 +31,6 @@ typedef enum {
     gyro_odr_62_5,     // Gyroscope ODR set to 62.5 Hz.
     gyro_odr_31_25,    // Gyroscope ODR set to 31.25 Hz.
 } gyro_odr_t;
-
-/* Enum representing the scale settings for the accelerometer */
-typedef enum {
-    acc_scale_2g = 0,    // Accelerometer scale set to ±2g.
-    acc_scale_4g,        // Accelerometer scale set to ±4g.
-    acc_scale_8g,        // Accelerometer scale set to ±8g.
-    acc_scale_16g,       // Accelerometer scale set to ±16g.
-} acc_scale_t;
 
 /* Enum representing the scale settings for the gyroscope */
 typedef enum {
@@ -92,18 +83,12 @@ typedef struct {
     gyro_odr_t gyro_odr;            // Output data rate (ODR) setting for the gyroscope.
 } qmi8658_cfg_t;
 
-/* Enum representing the result of an operation with Qmi8658c */
-typedef enum {
-    qmi8658_result_open_success,   // Operation to open communication with Qmi8658c was successful.
-    qmi8658_result_open_error,     // Error occurred while trying to open communication with Qmi8658c.
-    qmi8658_result_close_success,  // Operation to close communication with Qmi8658c was successful.
-    qmi8658_result_close_error,    // Error occurred while trying to close communication with Qmi8658c.
-} qmi8658_result_t;
-
 esp_err_t qmi8658_write_byte(i2c_port_t i2c_num, uint8_t reg_addr, uint8_t data);
 esp_err_t qmi8658_write_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *data, size_t len);
 esp_err_t qmi8658_read_byte(i2c_port_t i2c_num, uint8_t reg_addr, uint8_t *data);
 esp_err_t qmi8658_read_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *data, size_t len);
+
+esp_err_t qmi8658_configure(i2c_port_t i2c_num, qmi8658_cfg_t cfg);
 
 esp_err_t qmi8658_read_accelerometer(i2c_port_t i2c_num, acc_axes_raw_t *acc);
 esp_err_t qmi8658_read_gyro(i2c_port_t i2c_num, gyro_axes_raw_t *gyro);

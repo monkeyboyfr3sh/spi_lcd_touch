@@ -11,6 +11,7 @@
     "stdio.h": "c",
     "i2c.h": "c",
     "esp_err.h": "c",
-    "lvgl_demo_ui.h": "c"
+    "lvgl_demo_ui.h": "c",
+    "qmi8658_def.h": "c"
   }
 }
