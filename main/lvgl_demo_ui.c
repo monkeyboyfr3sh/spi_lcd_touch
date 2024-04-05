@@ -44,23 +44,25 @@ void example_lvgl_demo_ui(lv_disp_t *disp) {
     bar_y = lv_bar_create(scr);
     bar_z = lv_bar_create(scr);
 
-    int range = 900;
+    int bar_range = 900;
+    int bar_height = 45;
+    int bar_offset = 60;
 
     // Set range and initial values for each bar
-    lv_bar_set_range(bar_x, -range, range); // Define the range for x
-    lv_obj_align(bar_x, LV_ALIGN_CENTER, 0, -60);
+    lv_bar_set_range(bar_x, -bar_range, bar_range); // Define the range for x
+    lv_obj_align(bar_x, LV_ALIGN_CENTER, 0, -bar_offset);
     lv_obj_set_width(bar_x, 200); // Set the width of the bar
-    lv_obj_set_height(bar_x, 30); // Set the width of the bar
+    lv_obj_set_height(bar_x, bar_height); // Set the width of the bar
 
-    lv_bar_set_range(bar_y, -range, range); // Define the range for x
+    lv_bar_set_range(bar_y, -bar_range, bar_range); // Define the range for x
     lv_obj_align(bar_y, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_width(bar_y, 200); // Set the width of the bar
-    lv_obj_set_height(bar_y, 30); // Set the width of the bar
+    lv_obj_set_height(bar_y, bar_height); // Set the width of the bar
 
-    lv_bar_set_range(bar_z, -range, range); // Define the range for x
-    lv_obj_align(bar_z, LV_ALIGN_CENTER, 0, 60);
+    lv_bar_set_range(bar_z, -bar_range, bar_range); // Define the range for x
+    lv_obj_align(bar_z, LV_ALIGN_CENTER, 0, bar_offset);
     lv_obj_set_width(bar_z, 200); // Set the width of the bar
-    lv_obj_set_height(bar_z, 30); // Set the width of the bar
+    lv_obj_set_height(bar_z, bar_height); // Set the width of the bar
 
     // Create text labels
     label_x = lv_label_create(scr);
