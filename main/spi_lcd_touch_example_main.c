@@ -250,42 +250,48 @@ static void example_lvgl_port_task(void *arg)
     acc_axes_raw_t acc;
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     while (1) {
+
+        // // Read WHOAMI register to verify communication
+        // if (qmi8658_read_byte(I2C_MASTER_NUM, 0x08, &whoami) == ESP_OK) {
+        //     printf("QMI8658 WHOAMI: 0x%02X\n", whoami);
+        // } else {
+        //     printf("Failed to communicate with QMI8658\n");
+        //     continue;
+        // }
+        
+        // // Read accelerometer data
+        // uint8_t accel_data[6]; // 3 axes, 2 bytes each
+        // if (qmi8658_read_bytes(I2C_MASTER_NUM, 0x35, accel_data, sizeof(accel_data)) == ESP_OK) {
+
+        //     int ms_now = pdTICKS_TO_MS(xTaskGetTickCount());
+        //     set_display_number( (ms_now/100)%101 );
+
+        //     int16_t x_accel = (int16_t)((accel_data[1] << 8) | accel_data[0]);
+        //     int16_t y_accel = (int16_t)((accel_data[3] << 8) | accel_data[2]);
+        //     int16_t z_accel = (int16_t)((accel_data[5] << 8) | accel_data[4]);
+        //     double magnitude = sqrt(x_accel * x_accel + y_accel * y_accel + z_accel * z_accel);
+        //     // Clear the line using ANSI escape code
+
+        //     // Print the vector norm
+        //     // printf("\033[KVector norm: %f\r", magnitude);
+        //     set_display_number( (ms_now/100)%101 );
+        //     printf("\033[KAccelerometer Data: X=0x%08x, Y=0x%08x, Z=0x%08x\r", x_accel, y_accel, z_accel);   // Calculate the vector norm
+        // } else {
+        //     printf("Failed to read accelerometer data\n");
+        // }
+
+        qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
+
+        float x = ((float)acc.x/16384.0);
+        float y = ((float)acc.y/16384.0);
+        float z = ((float)acc.z/16384.0);
+
+        ESP_LOGI("main","%f, %f, %f", x, y, z);
+
         // Lock the mutex due to the LVGL APIs are not thread-safe
         if (example_lvgl_lock(-1)) {
             task_delay_ms = lv_timer_handler();
 
-            // // Read WHOAMI register to verify communication
-            // if (qmi8658_read_byte(I2C_MASTER_NUM, 0x08, &whoami) == ESP_OK) {
-            //     printf("QMI8658 WHOAMI: 0x%02X\n", whoami);
-            // } else {
-            //     printf("Failed to communicate with QMI8658\n");
-            //     continue;
-            // }
-            
-            // // Read accelerometer data
-            // uint8_t accel_data[6]; // 3 axes, 2 bytes each
-            // if (qmi8658_read_bytes(I2C_MASTER_NUM, 0x35, accel_data, sizeof(accel_data)) == ESP_OK) {
-
-            //     int ms_now = pdTICKS_TO_MS(xTaskGetTickCount());
-            //     set_display_number( (ms_now/100)%101 );
-
-            //     int16_t x_accel = (int16_t)((accel_data[1] << 8) | accel_data[0]);
-            //     int16_t y_accel = (int16_t)((accel_data[3] << 8) | accel_data[2]);
-            //     int16_t z_accel = (int16_t)((accel_data[5] << 8) | accel_data[4]);
-            //     double magnitude = sqrt(x_accel * x_accel + y_accel * y_accel + z_accel * z_accel);
-            //     // Clear the line using ANSI escape code
-
-            //     // Print the vector norm
-            //     // printf("\033[KVector norm: %f\r", magnitude);
-            //     set_display_number( (ms_now/100)%101 );
-            //     printf("\033[KAccelerometer Data: X=0x%08x, Y=0x%08x, Z=0x%08x\r", x_accel, y_accel, z_accel);   // Calculate the vector norm
-            // } else {
-            //     printf("Failed to read accelerometer data\n");
-            // }
-
-            qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
-
-            ESP_LOGI("main","%d, %d, %d", acc.x, acc.y, acc.z);
             update_coordinate_labels(acc.x, acc.y, acc.z);
 
             // Release the mutex
