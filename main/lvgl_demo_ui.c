@@ -42,12 +42,12 @@ void update_bars(float new_x, float new_y, float new_z)
     // float z_offset = 0.0;
     float y_offset = 1.1;
     // float z_offset = 0.0;
-    update_obect(label_x, label_y, label_z, -new_x, -new_y+y_offset, -new_z);
+    update_obect(label_x, label_y, label_z, -new_x, -new_y+y_offset, new_z);
 }
 void example_lvgl_demo_ui(lv_disp_t *disp) {
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
 
-    lv_disp_set_rotation(disp, LV_DISP_ROT_270);
+    lv_disp_set_rotation(disp, LV_DISP_ROT_90);
 
     // // Create bars for x, y, and z
     // bar_x = lv_bar_create(scr);
@@ -92,7 +92,7 @@ void example_lvgl_demo_ui(lv_disp_t *disp) {
     /*Add a scale first*/
     lv_meter_scale_t *scale = lv_meter_add_scale(meter);
 
-    lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 120);
+    lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
     lv_meter_set_scale_ticks(meter, scale, 41, 2, 10, lv_palette_main(LV_PALETTE_GREY));
     lv_meter_set_scale_major_ticks(meter, scale, 8, 4, 15, lv_color_black(), 10);
 
