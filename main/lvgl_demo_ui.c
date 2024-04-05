@@ -9,22 +9,23 @@ static lv_obj_t *label_z;
 
 
 
-static void update_obect(lv_obj_t *object_x, lv_obj_t *object_y, lv_obj_t *object_z, int new_x, int new_y, int new_z)
+static void update_obect(lv_obj_t *object_x, lv_obj_t *object_y, lv_obj_t *object_z, float new_x, float new_y, float new_z)
 {
     // Convert integers to strings
     char str_x[20];
     char str_y[20];
     char str_z[20];
-    sprintf(str_x, "x: %d", new_x);
-    sprintf(str_y, "y: %d", new_y);
-    sprintf(str_z, "z: %d", new_z);
+    sprintf(str_x, "x: %0.2f", new_x);
+    sprintf(str_y, "y: %0.2f", new_y);
+    sprintf(str_z, "z: %0.2f", new_z);
 
     // Update text of the labels
     lv_label_set_text(object_x, str_x);
     lv_label_set_text(object_y, str_y);
     lv_label_set_text(object_z, str_z);
 }
-void update_coordinate_labels(int new_x, int new_y, int new_z)
+
+void update_bars(float new_x, float new_y, float new_z)
 {
     update_obect(label_x, label_y, label_z, new_x, new_y, new_z);
 }
@@ -46,7 +47,7 @@ void example_lvgl_demo_ui(lv_disp_t *disp) {
     lv_obj_align(label_z, LV_ALIGN_CENTER, 0, 20);
 
     // Example of updating the labels
-    update_coordinate_labels(15, 25, 35);
+    update_bars(15, 25, 35);
 }
 
 // /*
