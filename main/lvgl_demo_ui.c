@@ -1,6 +1,7 @@
 #include "lvgl.h"
 #include "lvgl_demo_ui.h"
 #include <stdio.h>
+#include <math.h>
 
 // Create labels for x, y, and z
 static lv_obj_t *label_x;
@@ -16,36 +17,38 @@ static lv_obj_t *meter;
 
 static void update_obect(lv_obj_t *object_x, lv_obj_t *object_y, lv_obj_t *object_z, float new_x, float new_y, float new_z)
 {
-    // // Convert integers to strings
-    // char str_x[20];
-    // char str_y[20];
-    // char str_z[20];
-    // sprintf(str_x, "x=%0.2f", new_x);
-    // sprintf(str_y, "y=%0.2f", new_y);
-    // sprintf(str_z, "z=%0.2f", new_z);
-
-    // // Update bars
-    // lv_bar_set_value(bar_x, (int32_t)new_x*100.0, LV_ANIM_OFF);
-    // lv_bar_set_value(bar_y, (int32_t)new_y*100.0, LV_ANIM_OFF);
-    // lv_bar_set_value(bar_z, (int32_t)new_z*100.0, LV_ANIM_OFF);
-
-    // // Update text of the labels
-    // lv_label_set_text(object_x, str_x);
-    // lv_label_set_text(object_y, str_y);
-    // lv_label_set_text(object_z, str_z);
-
     lv_meter_set_indicator_end_value(meter, indic, new_y*100.0);
 }
 
+// Define a threshold for the difference
+#define THRESHOLD 0.2
+
 void update_bars(float new_x, float new_y, float new_z)
 {
-    // float z_offset = 0.0;
+    static float curr_x = 0.0, curr_y = 0.0, curr_z = 0.0; // Initialize current values
+
+    // Apply offsets to the new values
+    float x_offset = 0.0;
     float y_offset = 1.1;
-    // float z_offset = 0.0;
-    update_obect(label_x, label_y, label_z, -new_x, -new_y+y_offset, new_z);
+    float z_offset = 0.0;
+    new_x = -new_x + x_offset;
+    new_y = -new_y + y_offset;
+    new_z = new_z + z_offset;
+
+    // Check if the absolute difference in y exceeds the threshold
+    float delta_y = fabs(new_y - curr_y);
+    if (delta_y > THRESHOLD) {
+        // If it exceeds, update the current values and call update_object with the new values
+        curr_x = new_x;
+        curr_y = new_y;
+        curr_z = new_z;
+        update_obect(label_x, label_y, label_z, new_x, new_y, new_z);
+    }
 }
-void example_lvgl_demo_ui(lv_disp_t *disp)
+
+void example_lvgl_demo_ui(void)
 {
+    lv_disp_t *disp = NULL; // This will fetch default
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
 
     lv_disp_set_rotation(disp, LV_DISP_ROT_90);

@@ -67,8 +67,6 @@ void lvgl_drive_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL drive task");
     
-    lv_disp_t *disp = (lv_disp_t *)arg;
-
     ESP_LOGI(TAG, "Creating lvgl mutex");
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
@@ -83,14 +81,15 @@ void lvgl_drive_task(void *arg)
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
 
-    ESP_LOGI(TAG, "Display LVGL Meter Widget");
+    ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (example_lvgl_lock(-1)) {
-        example_lvgl_demo_ui(disp);
+        example_lvgl_demo_ui();
         // Release the mutex
         example_lvgl_unlock();
     }
 
+    ESP_LOGI(TAG, "Initializing filters");
     size_t buff_len = 6;
     CircularBuffer buff_x, buff_y, buff_z;
     initializeCircularBuffer(&buff_x, buff_len);
