@@ -15,7 +15,7 @@
 #include "lvgl.h"
 
 #include "display_config.h"
-#include "lvgl_demo_ui.h"
+#include "lvgl_ui.h"
 #include "lvgl_drive_task.h"
 
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341

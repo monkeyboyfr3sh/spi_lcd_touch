@@ -15,7 +15,7 @@
 #include <lvgl.h>
 
 #include "qmi8658.h"
-#include "lvgl_demo_ui.h"
+#include "lvgl_ui.h"
 #include "circular_integrator.h"
 
 static const char * TAG = "lvgl-drive";

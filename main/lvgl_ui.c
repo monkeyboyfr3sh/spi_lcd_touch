@@ -1,5 +1,5 @@
 #include "lvgl.h"
-#include "lvgl_demo_ui.h"
+#include "lvgl_ui.h"
 #include <stdio.h>
 #include <math.h>
 
