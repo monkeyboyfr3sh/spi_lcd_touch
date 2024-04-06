@@ -44,7 +44,8 @@ void update_bars(float new_x, float new_y, float new_z)
     // float z_offset = 0.0;
     update_obect(label_x, label_y, label_z, -new_x, -new_y+y_offset, new_z);
 }
-void example_lvgl_demo_ui(lv_disp_t *disp) {
+void example_lvgl_demo_ui(lv_disp_t *disp)
+{
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
 
     lv_disp_set_rotation(disp, LV_DISP_ROT_90);

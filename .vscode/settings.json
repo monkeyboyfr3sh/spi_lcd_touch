@@ -14,6 +14,12 @@
     "lvgl_demo_ui.h": "c",
     "qmi8658_def.h": "c",
     "freertos.h": "c",
-    "datatype_convert_helpers.h": "c"
+    "datatype_convert_helpers.h": "c",
+    "lvgl_drive_task.h": "c",
+    "array": "c",
+    "string": "c",
+    "string_view": "c",
+    "span": "c",
+    "circular_integrator.h": "c"
   }
 }
