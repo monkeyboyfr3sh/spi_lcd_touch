@@ -1,6 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
-  "idf.portWin": "COM14",
+  "idf.portWin": "COM3",
   "idf.flashType": "UART",
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
@@ -13,6 +13,7 @@
     "esp_err.h": "c",
     "lvgl_demo_ui.h": "c",
     "qmi8658_def.h": "c",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "datatype_convert_helpers.h": "c"
   }
 }

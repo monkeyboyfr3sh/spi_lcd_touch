@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 /**
- * @file dart_convert.h
- * @brief Functions for converting arrays between int32_t and float types.
+ * @file datatype_convert_helpers.h
+ * @brief Functions for converting arrays between different data types
  */
 
 /**
@@ -18,7 +18,7 @@
  * @param farr Pointer to the output float array.
  * @param size The number of elements in the arrays.
  */
-void dart_convert_array_float(int32_t *iarr, float *farr, size_t size);
+void convert_int32_to_float(int32_t *iarr, float *farr, size_t size);
 
 /**
  * @brief Convert an array of float to an array of int32_t.
@@ -30,4 +30,4 @@ void dart_convert_array_float(int32_t *iarr, float *farr, size_t size);
  * @param iarr Pointer to the output int32_t array.
  * @param size The number of elements in the arrays.
  */
-void dart_convert_array_int32(float *farr, int32_t *iarr, size_t size);
+void convert_float_to_int32(float *farr, int32_t *iarr, size_t size);

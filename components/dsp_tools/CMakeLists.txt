@@ -1,25 +1,27 @@
 get_filename_component(LIBRARY_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+# List all the source files
+set(COMMON_SRC_FILES
+    "filter_helpers.c" 
+    "batch_absolute.c"
+    "datatype_convert_helpers.c"
+    "filter10c_float.c"
+    "circular_integrator.c"
+)
+
 if(SIMULATION_BUILD)
     message(STATUS "[${LIBRARY_NAME}]: SIMULATION_BUILD is ENABLED")
 
-    # List all the source files in the 'components' directory
-    set(SRC_FILES
-        "dsp.c" 
-        "batch_absolute.c"
-        "convert_helpers.c"
-        "filter10c_float.c"
-        "circular_integrator.c"
-        "mag_hpf.c"
+    # In demo_component's CMakeLists.txt
+    add_library(${LIBRARY_NAME} ${COMMON_SRC_FILES})
+
+    # Specify that depedent libraries
+    target_link_libraries(${LIBRARY_NAME} PRIVATE
+        
     )
 
-    # In demo_component's CMakeLists.txt
-    add_library(${LIBRARY_NAME} ${SRC_FILES})
-
-    # Specify that demo_component depends on ComponentA
-    target_link_libraries(${LIBRARY_NAME} PRIVATE DART_DATATYPE)
-
-    # Include the custom include directory within 'DART_DATATYPE'
-    target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    # Include the include directory within dependent libraries
+    target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 else()
     message(STATUS "[${LIBRARY_NAME}]: SIMULATION_BUILD is DISABLED")
@@ -28,14 +30,10 @@ else()
         
         # Add component sources    
         SRCS
-            "dsp.c" 
-            "batch_absolute.c"
-            "convert_helpers.c"
-            "filter10c_float.c"
-            "circular_integrator.c"
+            ${COMMON_SRC_FILES}
 
         # Add component include locations
-        INCLUDE_DIRS
+        INCLUDE_DIRS 
             "include"
 
         # Add component public dependencies
