@@ -1,22 +1,21 @@
-/*
- * SPDX-FileCopyrightText: 2021-2023 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: CC0-1.0
- */
-
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
+
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+
+#include "sdkconfig.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "lvgl.h"
-#include "lvgl_demo_ui.h"
 
+#include "display_config.h"
+#include "lvgl_demo_ui.h"
 #include "lvgl_drive_task.h"
 
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
@@ -30,37 +29,6 @@
 #endif
 
 static const char *TAG = "example";
-
-// Using SPI2 in the example
-#define LCD_HOST  SPI2_HOST
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
-#define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL  1
-#define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
-#define EXAMPLE_PIN_NUM_SCLK           10
-#define EXAMPLE_PIN_NUM_MOSI           11
-#define EXAMPLE_PIN_NUM_MISO           -1
-#define EXAMPLE_PIN_NUM_LCD_DC         8
-#define EXAMPLE_PIN_NUM_LCD_RST        12
-#define EXAMPLE_PIN_NUM_LCD_CS         9
-#define EXAMPLE_PIN_NUM_BK_LIGHT       40
-#define EXAMPLE_PIN_NUM_TOUCH_CS       -1
-
-// The pixel number in horizontal and vertical
-#if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
-#define EXAMPLE_LCD_H_RES              240
-#define EXAMPLE_LCD_V_RES              320
-#elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
-#define EXAMPLE_LCD_H_RES              240
-#define EXAMPLE_LCD_V_RES              240
-#endif
-// Bit number used to represent command and parameter
-#define EXAMPLE_LCD_CMD_BITS           8
-#define EXAMPLE_LCD_PARAM_BITS         8
-
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 esp_lcd_touch_handle_t tp = NULL;
@@ -157,8 +125,6 @@ static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
     }
 }
 #endif
-
-
 
 void app_main(void)
 {
@@ -271,6 +237,7 @@ void app_main(void)
     disp_drv.user_data = panel_handle;
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
+    ESP_LOGI(TAG, "Register touch driver to LVGL");
     static lv_indev_drv_t indev_drv;    // Input device driver (Touch)
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
