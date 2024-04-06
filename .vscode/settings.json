@@ -5,5 +5,23 @@
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
     "board/esp32s3-bridge.cfg"
-  ]
+  ],
+  "files.associations": {
+    "qmi8658.h": "c",
+    "stdio.h": "c",
+    "i2c.h": "c",
+    "esp_err.h": "c",
+    "lvgl_demo_ui.h": "c",
+    "qmi8658_def.h": "c",
+    "freertos.h": "c",
+    "datatype_convert_helpers.h": "c",
+    "lvgl_drive_task.h": "c",
+    "array": "c",
+    "string": "c",
+    "string_view": "c",
+    "span": "c",
+    "circular_integrator.h": "c",
+    "display_config.h": "c",
+    "cstdlib": "c"
+  }
 }
