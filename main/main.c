@@ -28,12 +28,14 @@
 #include "esp_lcd_touch_stmpe610.h"
 #endif
 
+// Tag for logging
 static const char *TAG = "example";
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 esp_lcd_touch_handle_t tp = NULL;
 #endif
 
+// Callback function to notify LVGL when flush is ready
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
     lv_disp_drv_t *disp_driver = (lv_disp_drv_t *)user_ctx;
@@ -41,6 +43,7 @@ static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
     return false;
 }
 
+// Callback function to flush the LVGL buffer to the display
 static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
     esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t) drv->user_data;
@@ -48,11 +51,11 @@ static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_
     int offsetx2 = area->x2;
     int offsety1 = area->y1;
     int offsety2 = area->y2;
-    // copy a buffer's content to a specific area of the display
+    // Copy a buffer's content to a specific area of the display
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
 }
 
-/* Rotate display and touch, when rotated screen in LVGL. Called when driver parameters are updated. */
+// Callback function to update display and touch when rotated screen in LVGL
 static void example_lvgl_port_update_callback(lv_disp_drv_t *drv)
 {
     esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t) drv->user_data;
@@ -102,6 +105,7 @@ static void example_lvgl_port_update_callback(lv_disp_drv_t *drv)
 }
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
+// Callback function for touch events
 static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
 {
     uint16_t touchpad_x[1] = {0};
@@ -126,9 +130,10 @@ static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
 
 void app_main(void)
 {
-    static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
-    static lv_disp_drv_t disp_drv;      // contains callback functions
+    static lv_disp_draw_buf_t disp_buf; // Contains internal graphic buffer(s) called draw buffer(s)
+    static lv_disp_drv_t disp_drv;      // Contains callback functions
 
+    // Initialize LCD backlight
     ESP_LOGI(TAG, "Turn off LCD backlight");
     gpio_config_t bk_gpio_config = {
         .mode = GPIO_MODE_OUTPUT,
@@ -136,6 +141,7 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
 
+    // Initialize SPI bus
     ESP_LOGI(TAG, "Initialize SPI bus");
     spi_bus_config_t buscfg = {
         .sclk_io_num = EXAMPLE_PIN_NUM_SCLK,
@@ -147,6 +153,7 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
+    // Install panel IO
     ESP_LOGI(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_io_spi_config_t io_config = {
@@ -184,7 +191,7 @@ void app_main(void)
 #endif
     ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, true, false));
 
-    // user can flush pre-defined pattern to the screen before we turn on the screen or backlight
+    // Flush pre-defined pattern to the screen before turning on the screen or backlight
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
@@ -211,20 +218,23 @@ void app_main(void)
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 
+    // Turn on LCD backlight
     ESP_LOGI(TAG, "Turn on LCD backlight");
     gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
 
+    // Initialize LVGL library
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
-    // alloc draw buffers used by LVGL
-    // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
+    // Allocate draw buffers used by LVGL
+    // It's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
     lv_color_t *buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf1);
     lv_color_t *buf2 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf2);
-    // initialize LVGL draw buffers
+    // Initialize LVGL draw buffers
     lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * 20);
 
+    // Register display driver to LVGL
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = EXAMPLE_LCD_H_RES;
@@ -235,6 +245,7 @@ void app_main(void)
     disp_drv.user_data = panel_handle;
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
+    // Register touch driver to LVGL
     ESP_LOGI(TAG, "Register touch driver to LVGL");
     static lv_indev_drv_t indev_drv;    // Input device driver (Touch)
     lv_indev_drv_init(&indev_drv);
@@ -246,6 +257,7 @@ void app_main(void)
     lv_indev_drv_register(&indev_drv);
 #endif
 
+    // Create LVGL task
     ESP_LOGI(TAG, "Create LVGL task");
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
 
