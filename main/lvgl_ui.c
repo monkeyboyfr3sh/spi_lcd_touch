@@ -70,9 +70,9 @@ static void update_display_code(float new_x, float new_y, float new_z) {
 // Function to switch between display codes
 void cycle_display_code(void)
 {
-    current_display_code = (current_display_code+1) % display_mode_max;
+    display_mode_t new_display_code = (current_display_code+1) % display_mode_max;
     // Reinitialize UI based on the new display code
-    create_lvgl_ui(current_display_code);
+    create_lvgl_ui(new_display_code);
 }
 
 void update_bars(float new_x, float new_y, float new_z) {
@@ -81,6 +81,8 @@ void update_bars(float new_x, float new_y, float new_z) {
 }
 
 static lv_obj_t * clock_meter;
+lv_meter_indicator_t * indic_min;
+lv_meter_indicator_t * indic_hour; 
 
 static void set_clock(void * indic, int32_t v)
 {
@@ -101,13 +103,21 @@ void create_lvgl_ui(display_mode_t display_mode)
     const int bar_height = 45;
     const int bar_offset = 60;
 
-    // Clear the screen before re-creating the UI
-    lv_obj_clean(scr);
-
     // Stop animations when switching away from clock display
     if (current_display_code == clock_display) {
-        lv_anim_del(clock_meter, NULL); // Delete animations related to clock display
+        // Stop the minute hand animation
+        lv_anim_del(indic_min, set_clock);
+        // Stop the hour hand animation
+        lv_anim_del(indic_hour, set_clock);
+
+        // Delete the objects associated with the animation
+        lv_obj_del(clock_meter);
+
+        // lv_anim_del(clock_meter, NULL); // Delete animations related to clock display
     }
+
+    // Clear the screen before re-creating the UI
+    lv_obj_clean(scr);
 
     switch (display_mode)
     {
@@ -188,8 +198,8 @@ void create_lvgl_ui(display_mode_t display_mode)
         LV_IMG_DECLARE(img_hand)
 
         /*Add a the hands from images*/
-        lv_meter_indicator_t * indic_min = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
-        lv_meter_indicator_t * indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
+        indic_min = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
+        indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
 
         /*Create an animation to set the value*/
         lv_anim_t a;
