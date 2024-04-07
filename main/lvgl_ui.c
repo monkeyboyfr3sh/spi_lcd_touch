@@ -15,7 +15,13 @@ static lv_obj_t *bar_x;
 static lv_obj_t *bar_y;
 static lv_obj_t *bar_z;
 
-lv_meter_indicator_t *indic;
+// Define text labels for FPS and CPU utilization
+static lv_obj_t *label_fps;
+uint32_t frame_count = 0;
+
+static lv_obj_t *label_cpu;
+
+static lv_meter_indicator_t *indic;
 static lv_obj_t *meter;
 const float graph_sensitivity = 100.0;
 
@@ -37,6 +43,12 @@ double xy_to_degrees(double x, double y) {
     return degrees;
 }
 
+#define FPS_WINDOW_SIZE 10 // Choose an appropriate window size for your application
+
+static uint32_t frame_times[FPS_WINDOW_SIZE] = {0}; // Array to store time between frames
+static uint32_t frame_time_index = 0; // Index to keep track of the current position in the window
+static uint32_t frame_time_sum = 0; // Sum of time between frames within the window
+
 // Function to update display based on the chosen display code
 static void update_display_code(float new_x, float new_y, float new_z) {
     if (current_display_code == 2) {
@@ -49,6 +61,43 @@ static void update_display_code(float new_x, float new_y, float new_z) {
         lv_bar_set_value(bar_y, new_y * graph_sensitivity, LV_ANIM_OFF);
         lv_bar_set_value(bar_z, new_z * graph_sensitivity, LV_ANIM_OFF);
     }
+
+    // // Update FPS value
+    // uint32_t now = lv_tick_get();
+    // static uint32_t last_frame_time = 0;
+
+    // // Calculate time between frames
+    // uint32_t frame_time = now - last_frame_time;
+
+    // // Update moving window for FPS calculation
+    // frame_time_sum += frame_time;
+    // frame_times[frame_time_index] = frame_time;
+    // frame_time_index = (frame_time_index + 1) % FPS_WINDOW_SIZE;
+
+    // // Calculate FPS only when the window is full
+    // if (frame_count < FPS_WINDOW_SIZE) {
+    //     frame_count++;
+    // } else {
+    //     frame_time_sum -= frame_times[frame_time_index];
+    // }
+
+    // static int fps_draw_counter = 0;
+    // const int fps_draw_goal = 5;
+    // if((fps_draw_counter++%fps_draw_goal)==0){
+    //     float fps;
+    //     if (frame_count > 0) {
+    //         fps = 1000.0f / (frame_time_sum / frame_count); // Calculate FPS as average over the window
+    //     } else {
+    //         fps = 0.0f;
+    //     }
+
+    //     char fps_str[16];
+    //     snprintf(fps_str, 16, "FPS: %d", (int)fps);
+    //     lv_label_set_text(label_fps, fps_str);
+    // }
+
+    // // Update last frame time
+    // last_frame_time = now;
 }
 
 // Function to switch between display codes
@@ -152,4 +201,13 @@ void create_lvgl_ui(void) {
         /*Add a needle line indicator*/
         indic = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -10);
     }
+
+    // // Create the FPS label
+    // label_fps = lv_label_create(scr);
+    // lv_obj_align(label_fps, LV_ALIGN_CENTER, 0, 10);
+
+    // // Create the CPU label
+    // label_cpu = lv_label_create(scr);
+    // lv_obj_align(label_cpu, LV_ALIGN_BOTTOM_LEFT, 10, -10);
+    // lv_label_set_text(label_cpu, "CPU: --");
 }
