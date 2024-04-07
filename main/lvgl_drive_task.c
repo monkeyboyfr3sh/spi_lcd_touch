@@ -14,6 +14,7 @@
 #include <esp_timer.h>
 #include <lvgl.h>
 
+#include "display_config.h"
 #include "qmi8658.h"
 #include "lvgl_ui.h"
 #include "circular_integrator.h"
@@ -88,6 +89,9 @@ void lvgl_drive_task(void *arg)
     ESP_LOGI(TAG, "Initializing I2C");
     i2c_master_init();
 
+    // Configure gpio 0 as input
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+
     ESP_LOGI(TAG, "Initializing filters");
     static size_t buff_len = 75;
     initializeCircularBuffer(&buff_x, buff_len);
@@ -136,10 +140,16 @@ void lvgl_drive_task(void *arg)
         vTaskDelete(NULL);
     }
 
+    // Turn on LCD backlight
+    ESP_LOGI(TAG, "Turn on LCD backlight");
+    gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
+
     TickType_t last_switch_time = xTaskGetTickCount();
 
     ESP_LOGI(TAG, "Running QMI8658 sample loop");
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+    bool prev_btn_lvl = true;
+    bool curr_btn_lvl = true;
     while (1) {
         
         int avg_x = getAccumulatedSum(&buff_x)/buff_x.size;
@@ -159,7 +169,12 @@ void lvgl_drive_task(void *arg)
             // Update UI
             update_bars(x, y, z);
 
-            if (xTaskGetTickCount() - last_switch_time >= pdMS_TO_TICKS(2000)) {
+            prev_btn_lvl = curr_btn_lvl;
+            curr_btn_lvl = gpio_get_level(GPIO_NUM_0);
+            if (
+                (xTaskGetTickCount() - last_switch_time >= pdMS_TO_TICKS(100)) &&
+                ((prev_btn_lvl==1)&&(curr_btn_lvl==0))
+            ) {
                 last_switch_time = xTaskGetTickCount();
 
                 // Update display code

@@ -20,13 +20,29 @@ static lv_obj_t *meter;
 const float graph_sensitivity = 100.0;
 
 // Flag to indicate which display code is currently active
-static int current_display_code = 1;
+static int current_display_code = 2;
+
+double xy_to_degrees(double x, double y) {
+    // Calculate the angle in radians
+    double radians = atan2(y, x);
+    
+    // Convert radians to degrees
+    double degrees = radians * (180.0 / M_PI);
+    
+    // Ensure the angle is within [0, 360] range
+    while (degrees < 0) {
+        degrees += 360.0;
+    }
+    
+    return degrees;
+}
 
 // Function to update display based on the chosen display code
 static void update_display_code(float new_x, float new_y, float new_z) {
     if (current_display_code == 2) {
         // Display code 1
-        lv_meter_set_indicator_end_value(meter, indic, new_y * 100.0);
+        lv_meter_set_indicator_end_value(meter, indic, xy_to_degrees(new_x, new_y));
+        // lv_meter_set_indicator_end_value(meter, indic, new_y * 100.0);
     } else {
         // Display code 2
         lv_bar_set_value(bar_x, new_x * graph_sensitivity, LV_ANIM_OFF);
@@ -45,14 +61,14 @@ void switch_display_code()
 
 void update_bars(float new_x, float new_y, float new_z) {
     // Call the function to update the display based on the chosen display code
-    update_display_code(new_x, new_y, new_z);
+    update_display_code(-new_x, -new_y, new_z);
 }
 
 void create_lvgl_ui(void) {
     lv_disp_t *disp = NULL; // This will fetch default
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
 
-    lv_disp_set_rotation(disp, LV_DISP_ROT_90);
+    lv_disp_set_rotation(disp, LV_DISP_ROT_270);
 
     const float acceleration = 9.81; // m/s^2
     const int g_scale = 2; // # of g to show
@@ -107,29 +123,31 @@ void create_lvgl_ui(void) {
         /*Add a scale first*/
         lv_meter_scale_t *scale = lv_meter_add_scale(meter);
 
-        lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
-        lv_meter_set_scale_ticks(meter, scale, 41, 2, 10, lv_palette_main(LV_PALETTE_GREY));
-        lv_meter_set_scale_major_ticks(meter, scale, 8, 4, 15, lv_color_black(), 10);
+        // xy_to_degrees
+        // lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
+        lv_meter_set_scale_range(meter,scale, 0, 360, 360, 270);
+        lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_palette_main(LV_PALETTE_GREY));
+        lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_black(), 10);
 
-        /*Add a blue arc to the start*/
-        indic = lv_meter_add_arc(meter, scale, 3, lv_palette_main(LV_PALETTE_BLUE), 0);
-        lv_meter_set_indicator_start_value(meter, indic, (bar_range*0.6));
-        lv_meter_set_indicator_end_value(meter, indic, bar_range);
+        // /*Add a blue arc to the start*/
+        // indic = lv_meter_add_arc(meter, scale, 3, lv_palette_main(LV_PALETTE_BLUE), 0);
+        // lv_meter_set_indicator_start_value(meter, indic, (bar_range*0.6));
+        // lv_meter_set_indicator_end_value(meter, indic, bar_range);
 
-        /*Make the tick lines blue at the start of the scale*/
-        indic = lv_meter_add_scale_lines(meter, scale, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_BLUE), false, 0);
-        lv_meter_set_indicator_start_value(meter, indic, (bar_range*0.6));
-        lv_meter_set_indicator_end_value(meter, indic, bar_range);
+        // /*Make the tick lines blue at the start of the scale*/
+        // indic = lv_meter_add_scale_lines(meter, scale, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_BLUE), false, 0);
+        // lv_meter_set_indicator_start_value(meter, indic, (bar_range*0.6));
+        // lv_meter_set_indicator_end_value(meter, indic, bar_range);
 
-        /*Add a red arc to the end*/
-        indic = lv_meter_add_arc(meter, scale, 3, lv_palette_main(LV_PALETTE_RED), 0);
-        lv_meter_set_indicator_start_value(meter, indic, -bar_range);
-        lv_meter_set_indicator_end_value(meter, indic, -(bar_range*0.6));
+        // /*Add a red arc to the end*/
+        // indic = lv_meter_add_arc(meter, scale, 3, lv_palette_main(LV_PALETTE_RED), 0);
+        // lv_meter_set_indicator_start_value(meter, indic, -bar_range);
+        // lv_meter_set_indicator_end_value(meter, indic, -(bar_range*0.6));
 
-        /*Make the tick lines red at the end of the scale*/
-        indic = lv_meter_add_scale_lines(meter, scale, lv_palette_main(LV_PALETTE_RED), lv_palette_main(LV_PALETTE_RED), false, 0);
-        lv_meter_set_indicator_start_value(meter, indic, -bar_range);
-        lv_meter_set_indicator_end_value(meter, indic, -(bar_range*0.6));
+        // /*Make the tick lines red at the end of the scale*/
+        // indic = lv_meter_add_scale_lines(meter, scale, lv_palette_main(LV_PALETTE_RED), lv_palette_main(LV_PALETTE_RED), false, 0);
+        // lv_meter_set_indicator_start_value(meter, indic, -bar_range);
+        // lv_meter_set_indicator_end_value(meter, indic, -(bar_range*0.6));
 
         /*Add a needle line indicator*/
         indic = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -10);

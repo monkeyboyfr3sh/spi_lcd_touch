@@ -218,10 +218,6 @@ void app_main(void)
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 
-    // Turn on LCD backlight
-    ESP_LOGI(TAG, "Turn on LCD backlight");
-    gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
-
     // Initialize LVGL library
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
