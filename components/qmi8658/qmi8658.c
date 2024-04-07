@@ -73,6 +73,13 @@ esp_err_t qmi8658_read_bytes(i2c_port_t i2c_num, uint8_t start_addr, uint8_t *da
     return ret;
 }
 
+esp_err_t qmi8658_reset(i2c_port_t i2c_num)
+{
+    qmi8658_write_byte(i2c_num, QMI8658_RESET, 0xB0); // 0xB0 is reset magic number
+    vTaskDelay(pdMS_TO_TICKS(10));
+    return qmi8658_write_byte(i2c_num, QMI8658_RESET, 0x00); // 0xB0 is reset magic number 
+}
+
 esp_err_t qmi8658_configure(i2c_port_t i2c_num, qmi8658_cfg_t cfg)
 {
     return ESP_OK;
@@ -135,4 +142,17 @@ esp_err_t qmi8658_read_temperature(i2c_port_t i2c_num, int16_t *temp)
     *temp = (((int16_t)(temp_hi << 8)) | ((int16_t)(temp_lo << 0)));
 
     return ESP_OK;    
+}
+
+esp_err_t qmi8658_whoami_check(i2c_port_t i2c_num)
+{
+    // Read WHOAMI register to verify communication
+    uint8_t whoami;
+    if (qmi8658_read_byte(i2c_num, 0x00, &whoami) == ESP_OK) {
+        ESP_LOGI(TAG,"WHOAMI reg = 0x%02X", whoami);
+        return ESP_OK;
+    } else {
+        ESP_LOGW(TAG,"Failed to communicate with QMI8658");
+        return ESP_FAIL;
+    }
 }

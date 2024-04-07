@@ -29,6 +29,8 @@ static const char * TAG = "lvgl-drive";
 #define I2C_MASTER_FREQ_HZ          400000    // I2C master clock frequency
 
 static SemaphoreHandle_t lvgl_mux = NULL;
+static acc_axes_raw_t acc;
+static CircularBuffer buff_x, buff_y, buff_z;
 
 // Function to initialize I2C
 static void i2c_master_init() {
@@ -44,10 +46,21 @@ static void i2c_master_init() {
     i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
-static void increase_lvgl_tick(void *arg)
+static void increase_lvgl_tick_cb(void *arg)
 {
     /* Tell LVGL how many milliseconds has elapsed */
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
+}
+
+static void sample_qmi8658_cb(void *arg)
+{
+    // Read accelerometer
+    qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
+
+    // Add samples to buffer
+    addSample(&buff_x, acc.x);
+    addSample(&buff_y, acc.y);
+    addSample(&buff_z, acc.z);
 }
 
 bool lvgl_lock(int timeout_ms)
@@ -71,17 +84,37 @@ void lvgl_drive_task(void *arg)
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
 
+    // Initialize I2C
+    ESP_LOGI(TAG, "Initializing I2C");
+    i2c_master_init();
+
+    ESP_LOGI(TAG, "Initializing filters");
+    static size_t buff_len = 100;
+    initializeCircularBuffer(&buff_x, buff_len);
+    initializeCircularBuffer(&buff_y, buff_len);
+    initializeCircularBuffer(&buff_z, buff_len);
+
     ESP_LOGI(TAG, "Install LVGL tick timer");
-    
     // Tick interface for LVGL (using esp_timer to generate periodic event)
     const esp_timer_create_args_t lvgl_tick_timer_args = {
-        .callback = &increase_lvgl_tick,
+        .callback = &increase_lvgl_tick_cb,
         .name = "lvgl_tick"
     };
 
     esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
+
+    ESP_LOGI(TAG, "Install LVGL sample timer");
+    // Tick interface for LVGL (using esp_timer to generate periodic event)
+    const esp_timer_create_args_t lvgl_sample_timer_args = {
+        .callback = &sample_qmi8658_cb,
+        .name = "lvgl_sample"
+    };
+
+    esp_timer_handle_t lvgl_sample_timer = NULL;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_sample_timer_args, &lvgl_sample_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_sample_timer, LVGL_SAMPLE_PERIOD_US));
 
     ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
@@ -90,45 +123,21 @@ void lvgl_drive_task(void *arg)
         // Release the mutex
         lvgl_unlock();
     }
-
-    ESP_LOGI(TAG, "Initializing filters");
-    size_t buff_len = 6;
-    CircularBuffer buff_x, buff_y, buff_z;
-    initializeCircularBuffer(&buff_x, buff_len);
-    initializeCircularBuffer(&buff_y, buff_len);
-    initializeCircularBuffer(&buff_z, buff_len);
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    // Initialize I2C
-    ESP_LOGI(TAG, "Initializing I2C");
-    i2c_master_init();
     
     ESP_LOGI(TAG, "Initializing QMI8658");
-    qmi8658_write_byte(I2C_MASTER_NUM, 0x03,acc_odr_11); // Set data rate
-    qmi8658_write_byte(I2C_MASTER_NUM, 0x08,0x01); // Enable accelerometer
-    qmi8658_write_byte(I2C_MASTER_NUM, 0x08,0x01); // Enable accelerometer
+    qmi8658_reset(I2C_MASTER_NUM);
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x03, 0x03); // Set data rate
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x06, 0x01); // Enable accelerometer LPF
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x08, 0x01); // Enable accelerometer
 
-    // Read WHOAMI register to verify communication
-    uint8_t whoami;
-    if (qmi8658_read_byte(I2C_MASTER_NUM, 0x00, &whoami) == ESP_OK) {
-        ESP_LOGI(TAG,"QMI8658 WHOAMI: 0x%02X", whoami);
-    } else {
-        ESP_LOGW(TAG,"Failed to communicate with QMI8658");
+    // Run whoami checl
+    if(qmi8658_whoami_check(I2C_MASTER_NUM)!=ESP_OK){
         vTaskDelete(NULL);
     }
 
     ESP_LOGI(TAG, "Running QMI8658 sample loop");
-    acc_axes_raw_t acc;
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     while (1) {
-
-        // Read accelerometer
-        qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
-
-        // Add samples
-        addSample(&buff_x, acc.x);
-        addSample(&buff_y, acc.y);
-        addSample(&buff_z, acc.z);
         
         int avg_x = getAccumulatedSum(&buff_x)/buff_x.size;
         int avg_y = getAccumulatedSum(&buff_y)/buff_y.size;
