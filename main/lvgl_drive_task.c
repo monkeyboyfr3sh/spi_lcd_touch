@@ -126,9 +126,10 @@ void lvgl_drive_task(void *arg)
     
     ESP_LOGI(TAG, "Initializing QMI8658");
     qmi8658_reset(I2C_MASTER_NUM);
-    qmi8658_write_byte(I2C_MASTER_NUM, 0x03, 0x03); // Set data rate
+    qmi8658_write_byte(I2C_MASTER_NUM, 0x03, 0x13); // Set accelerometer (sensitivity=+-4g) and (data rate=1000Hz)
     qmi8658_write_byte(I2C_MASTER_NUM, 0x06, 0x01); // Enable accelerometer LPF
     qmi8658_write_byte(I2C_MASTER_NUM, 0x08, 0x01); // Enable accelerometer
+    const float accelerometer_sensitivity = 8192.0;
 
     // Run whoami checl
     if(qmi8658_whoami_check(I2C_MASTER_NUM)!=ESP_OK){
@@ -144,9 +145,9 @@ void lvgl_drive_task(void *arg)
         int avg_z = getAccumulatedSum(&buff_z)/buff_z.size;
     
         // Calculate g
-        float x = ((float)avg_x/16384.0) * 9.81;
-        float y = ((float)avg_y/16384.0) * 9.81;
-        float z = ((float)avg_z/16384.0) * 9.81;
+        float x = ((float)avg_x/accelerometer_sensitivity) * 9.81;
+        float y = ((float)avg_y/accelerometer_sensitivity) * 9.81;
+        float z = ((float)avg_z/accelerometer_sensitivity) * 9.81;
         // ESP_LOGI("main","%f, %f, %f", x, y, z);
 
         // Lock the mutex due to the LVGL APIs are not thread-safe
