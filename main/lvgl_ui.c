@@ -6,6 +6,9 @@
 // Define a threshold for the difference
 #define THRESHOLD 0.0
 
+// Define the clock object globally
+lv_obj_t *hour_hand, *minute_hand, *second_hand, *clock;
+
 // Create labels for x, y, and z
 static lv_obj_t *label_x;
 static lv_obj_t *label_y;
@@ -26,7 +29,7 @@ static lv_obj_t *meter;
 const float graph_sensitivity = 100.0;
 
 // Flag to indicate which display code is currently active
-static int current_display_code = 2;
+static display_mode_t current_display_code = bar_display;
 
 double xy_to_degrees(double x, double y) {
     // Calculate the angle in radians
@@ -43,69 +46,83 @@ double xy_to_degrees(double x, double y) {
     return degrees;
 }
 
-#define FPS_WINDOW_SIZE 10 // Choose an appropriate window size for your application
+// static lv_obj_t * clock_scale;
+// static lv_obj_t * minute_hand;
+// static lv_obj_t * hour_hand;
+// static lv_point_precise_t minute_hand_points[2];
+// static int32_t hour;
+// static int32_t minute;
 
-static uint32_t frame_times[FPS_WINDOW_SIZE] = {0}; // Array to store time between frames
-static uint32_t frame_time_index = 0; // Index to keep track of the current position in the window
-static uint32_t frame_time_sum = 0; // Sum of time between frames within the window
+static void timer_cb(lv_timer_t * timer)
+{
+    // LV_UNUSED(timer);
+
+    // minute++;
+    // if(minute > 59) {
+    //     minute = 0;
+    //     hour++;
+    //     if(hour > 11) {
+    //         hour = 0;
+    //     }
+    // }
+
+    // /**
+    //  * the scale will store the needle line points in the existing
+    //  * point array if one was set with `lv_line_set_points_mutable`.
+    //  * Otherwise, it will allocate the needle line points.
+    //  */
+
+    // /* the scale will store the minute hand line points in `minute_hand_points` */
+    // lv_scale_set_line_needle_value(clock_scale, minute_hand, 60, minute);
+    // /* log the points that were stored in the array */
+    // LV_LOG_USER(
+    //     "minute hand points - "
+    //     "0: (%" my_PRIprecise ", %" my_PRIprecise "), "
+    //     "1: (%" my_PRIprecise ", %" my_PRIprecise ")",
+    //     minute_hand_points[0].x, minute_hand_points[0].y,
+    //     minute_hand_points[1].x, minute_hand_points[1].y
+    // );
+
+    // /* the scale will allocate the hour hand line points */
+    // lv_scale_set_line_needle_value(clock_scale, hour_hand, 40, hour * 5 + (minute / 12));
+}
+
+/**
+ * A round scale with multiple needles, resembing a clock
+ */
+void lv_example_scale_6(void)
+{
+
+}
+
 
 // Function to update display based on the chosen display code
 static void update_display_code(float new_x, float new_y, float new_z) {
-    if (current_display_code == 2) {
-        // Display code 1
+    switch (current_display_code)
+    {
+    case meter_display:
         lv_meter_set_indicator_end_value(meter, indic, xy_to_degrees(new_x, new_y));
         // lv_meter_set_indicator_end_value(meter, indic, new_y * 100.0);
-    } else {
+        break;
+
+    case bar_display:
         // Display code 2
         lv_bar_set_value(bar_x, new_x * graph_sensitivity, LV_ANIM_OFF);
         lv_bar_set_value(bar_y, new_y * graph_sensitivity, LV_ANIM_OFF);
         lv_bar_set_value(bar_z, new_z * graph_sensitivity, LV_ANIM_OFF);
+        break;
+    
+    default:
+        break;
     }
-
-    // // Update FPS value
-    // uint32_t now = lv_tick_get();
-    // static uint32_t last_frame_time = 0;
-
-    // // Calculate time between frames
-    // uint32_t frame_time = now - last_frame_time;
-
-    // // Update moving window for FPS calculation
-    // frame_time_sum += frame_time;
-    // frame_times[frame_time_index] = frame_time;
-    // frame_time_index = (frame_time_index + 1) % FPS_WINDOW_SIZE;
-
-    // // Calculate FPS only when the window is full
-    // if (frame_count < FPS_WINDOW_SIZE) {
-    //     frame_count++;
-    // } else {
-    //     frame_time_sum -= frame_times[frame_time_index];
-    // }
-
-    // static int fps_draw_counter = 0;
-    // const int fps_draw_goal = 5;
-    // if((fps_draw_counter++%fps_draw_goal)==0){
-    //     float fps;
-    //     if (frame_count > 0) {
-    //         fps = 1000.0f / (frame_time_sum / frame_count); // Calculate FPS as average over the window
-    //     } else {
-    //         fps = 0.0f;
-    //     }
-
-    //     char fps_str[16];
-    //     snprintf(fps_str, 16, "FPS: %d", (int)fps);
-    //     lv_label_set_text(label_fps, fps_str);
-    // }
-
-    // // Update last frame time
-    // last_frame_time = now;
 }
 
 // Function to switch between display codes
-void switch_display_code()
+void cycle_display_code(void)
 {
-    current_display_code = (current_display_code == 1) ? 2 : 1;
+    current_display_code = (current_display_code+1) % display_mode_max;
     // Reinitialize UI based on the new display code
-    create_lvgl_ui();
+    create_lvgl_ui(current_display_code);
 }
 
 void update_bars(float new_x, float new_y, float new_z) {
@@ -113,7 +130,8 @@ void update_bars(float new_x, float new_y, float new_z) {
     update_display_code(-new_x, -new_y, new_z);
 }
 
-void create_lvgl_ui(void) {
+void create_lvgl_ui(display_mode_t display_mode)
+{
     lv_disp_t *disp = NULL; // This will fetch default
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
 
@@ -128,7 +146,28 @@ void create_lvgl_ui(void) {
     // Clear the screen before re-creating the UI
     lv_obj_clean(scr);
 
-    if (current_display_code == 1) {
+    switch (display_mode)
+    {
+    case meter_display:
+        // Create a meter
+        meter = lv_meter_create(scr);
+        lv_obj_center(meter);
+        lv_obj_set_size(meter, 240, 240);
+
+        /*Add a scale first*/
+        lv_meter_scale_t *scale = lv_meter_add_scale(meter);
+
+        // xy_to_degrees
+        // lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
+        lv_meter_set_scale_range(meter,scale, 0, 360, 360, 270);
+        lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_palette_main(LV_PALETTE_GREY));
+        lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_black(), 10);
+
+        /*Add a needle line indicator*/
+        indic = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -10);
+        break;
+
+    case bar_display:
         // Create bars for x, y, and z
         bar_x = lv_bar_create(scr);
         bar_y = lv_bar_create(scr);
@@ -163,51 +202,84 @@ void create_lvgl_ui(void) {
         lv_label_set_text(label_x,"X");
         lv_label_set_text(label_y,"Y");
         lv_label_set_text(label_z,"Z");
-    } else {
-        // Create a meter
-        meter = lv_meter_create(scr);
-        lv_obj_center(meter);
-        lv_obj_set_size(meter, 240, 240);
+        break;
 
-        /*Add a scale first*/
-        lv_meter_scale_t *scale = lv_meter_add_scale(meter);
+    case clock_display:
+        // clock_scale = lv_scale_create(lv_screen_active());
 
-        // xy_to_degrees
-        // lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
-        lv_meter_set_scale_range(meter,scale, 0, 360, 360, 270);
-        lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_palette_main(LV_PALETTE_GREY));
-        lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_black(), 10);
+        // lv_obj_set_size(clock_scale, 150, 150);
+        // lv_scale_set_mode(clock_scale, LV_SCALE_MODE_ROUND_INNER);
+        // lv_obj_set_style_bg_opa(clock_scale, LV_OPA_60, 0);
+        // lv_obj_set_style_bg_color(clock_scale, lv_color_black(), 0);
+        // lv_obj_set_style_radius(clock_scale, LV_RADIUS_CIRCLE, 0);
+        // lv_obj_set_style_clip_corner(clock_scale, true, 0);
+        // lv_obj_center(clock_scale);
 
-        // /*Add a blue arc to the start*/
-        // indic = lv_meter_add_arc(meter, scale, 3, lv_palette_main(LV_PALETTE_BLUE), 0);
-        // lv_meter_set_indicator_start_value(meter, indic, (bar_range*0.6));
-        // lv_meter_set_indicator_end_value(meter, indic, bar_range);
+        // lv_scale_set_label_show(clock_scale, true);
 
-        // /*Make the tick lines blue at the start of the scale*/
-        // indic = lv_meter_add_scale_lines(meter, scale, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_BLUE), false, 0);
-        // lv_meter_set_indicator_start_value(meter, indic, (bar_range*0.6));
-        // lv_meter_set_indicator_end_value(meter, indic, bar_range);
+        // lv_scale_set_total_tick_count(clock_scale, 61);
+        // lv_scale_set_major_tick_every(clock_scale, 5);
 
-        // /*Add a red arc to the end*/
-        // indic = lv_meter_add_arc(meter, scale, 3, lv_palette_main(LV_PALETTE_RED), 0);
-        // lv_meter_set_indicator_start_value(meter, indic, -bar_range);
-        // lv_meter_set_indicator_end_value(meter, indic, -(bar_range*0.6));
+        // static const char * hour_ticks[] = {"12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", NULL};
+        // lv_scale_set_text_src(clock_scale, hour_ticks);
 
-        // /*Make the tick lines red at the end of the scale*/
-        // indic = lv_meter_add_scale_lines(meter, scale, lv_palette_main(LV_PALETTE_RED), lv_palette_main(LV_PALETTE_RED), false, 0);
-        // lv_meter_set_indicator_start_value(meter, indic, -bar_range);
-        // lv_meter_set_indicator_end_value(meter, indic, -(bar_range*0.6));
+        // static lv_style_t indicator_style;
+        // lv_style_init(&indicator_style);
 
-        /*Add a needle line indicator*/
-        indic = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -10);
+        // /* Label style properties */
+        // lv_style_set_text_font(&indicator_style, LV_FONT_DEFAULT);
+        // lv_style_set_text_color(&indicator_style, lv_palette_main(LV_PALETTE_YELLOW));
+
+        // /* Major tick properties */
+        // lv_style_set_line_color(&indicator_style, lv_palette_main(LV_PALETTE_YELLOW));
+        // lv_style_set_length(&indicator_style, 8); /* tick length */
+        // lv_style_set_line_width(&indicator_style, 2); /* tick width */
+        // lv_obj_add_style(clock_scale, &indicator_style, LV_PART_INDICATOR);
+
+        // /* Minor tick properties */
+        // static lv_style_t minor_ticks_style;
+        // lv_style_init(&minor_ticks_style);
+        // lv_style_set_line_color(&minor_ticks_style, lv_palette_main(LV_PALETTE_YELLOW));
+        // lv_style_set_length(&minor_ticks_style, 6); /* tick length */
+        // lv_style_set_line_width(&minor_ticks_style, 2); /* tick width */
+        // lv_obj_add_style(clock_scale, &minor_ticks_style, LV_PART_ITEMS);
+
+        // /* Main line properties */
+        // static lv_style_t main_line_style;
+        // lv_style_init(&main_line_style);
+        // lv_style_set_arc_color(&main_line_style, lv_color_black());
+        // lv_style_set_arc_width(&main_line_style, 5);
+        // lv_obj_add_style(clock_scale, &main_line_style, LV_PART_MAIN);
+
+        // lv_scale_set_range(clock_scale, 0, 60);
+
+        // lv_scale_set_angle_range(clock_scale, 360);
+        // lv_scale_set_rotation(clock_scale, 270);
+
+        // minute_hand = lv_line_create(clock_scale);
+        // lv_line_set_points_mutable(minute_hand, minute_hand_points, 2);
+
+        // lv_obj_set_style_line_width(minute_hand, 3, 0);
+        // lv_obj_set_style_line_rounded(minute_hand, true, 0);
+        // lv_obj_set_style_line_color(minute_hand, lv_color_white(), 0);
+
+        // hour_hand = lv_line_create(clock_scale);
+
+        // lv_obj_set_style_line_width(hour_hand, 5, 0);
+        // lv_obj_set_style_line_rounded(hour_hand, true, 0);
+        // lv_obj_set_style_line_color(hour_hand, lv_palette_main(LV_PALETTE_RED), 0);
+
+        // hour = 11;
+        // minute = 5;
+        // lv_timer_t * timer = lv_timer_create(timer_cb, 250, NULL);
+        // lv_timer_ready(timer);
+        break;
+    
+    default:
+        display_mode = display_mode_unknown;
+        break;
     }
 
-    // // Create the FPS label
-    // label_fps = lv_label_create(scr);
-    // lv_obj_align(label_fps, LV_ALIGN_CENTER, 0, 10);
-
-    // // Create the CPU label
-    // label_cpu = lv_label_create(scr);
-    // lv_obj_align(label_cpu, LV_ALIGN_BOTTOM_LEFT, 10, -10);
-    // lv_label_set_text(label_cpu, "CPU: --");
+    // Update display mode var
+    current_display_code = display_mode;
 }

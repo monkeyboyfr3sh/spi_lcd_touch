@@ -123,7 +123,7 @@ void lvgl_drive_task(void *arg)
     ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_lock(-1)) {
-        create_lvgl_ui();
+        create_lvgl_ui(meter_display);
         // Release the mutex
         lvgl_unlock();
     }
@@ -178,7 +178,7 @@ void lvgl_drive_task(void *arg)
                 last_switch_time = xTaskGetTickCount();
 
                 // Update display code
-                switch_display_code();
+                cycle_display_code();
             }
 
             // Release the mutex
