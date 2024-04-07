@@ -22,7 +22,8 @@ uint32_t frame_count = 0;
 
 static lv_obj_t *label_cpu;
 
-static lv_meter_indicator_t *indic;
+static lv_meter_indicator_t *indic_accent;
+static lv_meter_indicator_t *indic_base;
 static lv_obj_t *meter;
 const float graph_sensitivity = 100.0;
 
@@ -49,7 +50,9 @@ static void update_display_code(float new_x, float new_y, float new_z) {
     switch (current_display_code)
     {
     case meter_display:
-        lv_meter_set_indicator_end_value(meter, indic, xy_to_degrees(new_x, new_y));
+        int angle_deg = (int)xy_to_degrees(new_x, new_y);
+        lv_meter_set_indicator_end_value(meter, indic_base, angle_deg);
+        lv_meter_set_indicator_end_value(meter, indic_accent, angle_deg);
         // lv_meter_set_indicator_end_value(meter, indic, new_y * 100.0);
         break;
 
@@ -134,11 +137,21 @@ void create_lvgl_ui(display_mode_t display_mode)
         // xy_to_degrees
         // lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
         lv_meter_set_scale_range(meter,scale, 0, 360, 360, 270);
-        lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_palette_main(LV_PALETTE_GREY));
-        lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_black(), 10);
+        lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_color_make(196, 40, 252));
+        // lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_make(255, 192, 203), 10);
+        lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_palette_main(LV_PALETTE_GREY), 10);
 
         /*Add a needle line indicator*/
-        indic = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -10);
+        indic_accent = lv_meter_add_needle_line(meter, scale, 4, lv_color_make(196, 40, 252), -10);
+        indic_base = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -40);
+
+        lv_obj_t * label_tilt = lv_label_create(scr);
+
+        // Align labels to the center of the screen
+        lv_obj_align(label_tilt, LV_ALIGN_CENTER, 0, -30);
+
+        lv_label_set_text(label_tilt,"XY Tilt");
+
         break;
 
     case bar_display:
