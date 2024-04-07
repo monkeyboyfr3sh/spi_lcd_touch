@@ -123,7 +123,7 @@ void lvgl_drive_task(void *arg)
         // Release the mutex
         lvgl_unlock();
     }
-    
+
     ESP_LOGI(TAG, "Initializing QMI8658");
     qmi8658_reset(I2C_MASTER_NUM);
     qmi8658_write_byte(I2C_MASTER_NUM, 0x03, 0x13); // Set accelerometer (sensitivity=+-4g) and (data rate=1000Hz)
@@ -135,6 +135,8 @@ void lvgl_drive_task(void *arg)
     if(qmi8658_whoami_check(I2C_MASTER_NUM)!=ESP_OK){
         vTaskDelete(NULL);
     }
+
+    TickType_t last_switch_time = xTaskGetTickCount();
 
     ESP_LOGI(TAG, "Running QMI8658 sample loop");
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
@@ -156,6 +158,13 @@ void lvgl_drive_task(void *arg)
 
             // Update UI
             update_bars(x, y, z);
+
+            if (xTaskGetTickCount() - last_switch_time >= pdMS_TO_TICKS(2000)) {
+                last_switch_time = xTaskGetTickCount();
+
+                // Update display code
+                switch_display_code();
+            }
 
             // Release the mutex
             lvgl_unlock();

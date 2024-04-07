@@ -22,6 +22,8 @@
     "span": "c",
     "circular_integrator.h": "c",
     "display_config.h": "c",
-    "cstdlib": "c"
+    "cstdlib": "c",
+    "lvgl.h": "c",
+    "lvgl_ui.h": "c"
   }
 }
