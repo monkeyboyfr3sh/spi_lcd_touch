@@ -46,56 +46,6 @@ double xy_to_degrees(double x, double y) {
     return degrees;
 }
 
-// static lv_obj_t * clock_scale;
-// static lv_obj_t * minute_hand;
-// static lv_obj_t * hour_hand;
-// static lv_point_precise_t minute_hand_points[2];
-// static int32_t hour;
-// static int32_t minute;
-
-static void timer_cb(lv_timer_t * timer)
-{
-    // LV_UNUSED(timer);
-
-    // minute++;
-    // if(minute > 59) {
-    //     minute = 0;
-    //     hour++;
-    //     if(hour > 11) {
-    //         hour = 0;
-    //     }
-    // }
-
-    // /**
-    //  * the scale will store the needle line points in the existing
-    //  * point array if one was set with `lv_line_set_points_mutable`.
-    //  * Otherwise, it will allocate the needle line points.
-    //  */
-
-    // /* the scale will store the minute hand line points in `minute_hand_points` */
-    // lv_scale_set_line_needle_value(clock_scale, minute_hand, 60, minute);
-    // /* log the points that were stored in the array */
-    // LV_LOG_USER(
-    //     "minute hand points - "
-    //     "0: (%" my_PRIprecise ", %" my_PRIprecise "), "
-    //     "1: (%" my_PRIprecise ", %" my_PRIprecise ")",
-    //     minute_hand_points[0].x, minute_hand_points[0].y,
-    //     minute_hand_points[1].x, minute_hand_points[1].y
-    // );
-
-    // /* the scale will allocate the hour hand line points */
-    // lv_scale_set_line_needle_value(clock_scale, hour_hand, 40, hour * 5 + (minute / 12));
-}
-
-/**
- * A round scale with multiple needles, resembing a clock
- */
-void lv_example_scale_6(void)
-{
-
-}
-
-
 // Function to update display based on the chosen display code
 static void update_display_code(float new_x, float new_y, float new_z) {
     switch (current_display_code)
@@ -130,6 +80,14 @@ void update_bars(float new_x, float new_y, float new_z) {
     update_display_code(-new_x, -new_y, new_z);
 }
 
+static lv_obj_t * clock_meter;
+
+static void set_clock(void * indic, int32_t v)
+{
+    lv_meter_set_indicator_end_value(clock_meter, indic, v);
+}
+
+
 void create_lvgl_ui(display_mode_t display_mode)
 {
     lv_disp_t *disp = NULL; // This will fetch default
@@ -145,6 +103,11 @@ void create_lvgl_ui(display_mode_t display_mode)
 
     // Clear the screen before re-creating the UI
     lv_obj_clean(scr);
+
+    // Stop animations when switching away from clock display
+    if (current_display_code == clock_display) {
+        lv_anim_del(clock_meter, NULL); // Delete animations related to clock display
+    }
 
     switch (display_mode)
     {
@@ -205,74 +168,43 @@ void create_lvgl_ui(display_mode_t display_mode)
         break;
 
     case clock_display:
-        // clock_scale = lv_scale_create(lv_screen_active());
+        // Create a meter
+        clock_meter = lv_meter_create(scr);
+        lv_obj_center(clock_meter);
+        lv_obj_set_size(clock_meter, 240, 240);
 
-        // lv_obj_set_size(clock_scale, 150, 150);
-        // lv_scale_set_mode(clock_scale, LV_SCALE_MODE_ROUND_INNER);
-        // lv_obj_set_style_bg_opa(clock_scale, LV_OPA_60, 0);
-        // lv_obj_set_style_bg_color(clock_scale, lv_color_black(), 0);
-        // lv_obj_set_style_radius(clock_scale, LV_RADIUS_CIRCLE, 0);
-        // lv_obj_set_style_clip_corner(clock_scale, true, 0);
-        // lv_obj_center(clock_scale);
+        /*Create a scale for the minutes*/
+        /*61 ticks in a 360 degrees range (the last and the first line overlaps)*/
+        lv_meter_scale_t * scale_min = lv_meter_add_scale(clock_meter);
+        lv_meter_set_scale_ticks(clock_meter, scale_min, 61, 1, 10, lv_palette_main(LV_PALETTE_GREY));
+        lv_meter_set_scale_range(clock_meter, scale_min, 0, 60, 360, 270);
 
-        // lv_scale_set_label_show(clock_scale, true);
+        /*Create another scale for the hours. It's only visual and contains only major ticks*/
+        lv_meter_scale_t * scale_hour = lv_meter_add_scale(clock_meter);
+        lv_meter_set_scale_ticks(clock_meter, scale_hour, 12, 0, 0, lv_palette_main(LV_PALETTE_GREY));               /*12 ticks*/
+        lv_meter_set_scale_major_ticks(clock_meter, scale_hour, 1, 2, 20, lv_color_black(), 10);    /*Every tick is major*/
+        lv_meter_set_scale_range(clock_meter, scale_hour, 1, 12, 330, 300);       /*[1..12] values in an almost full circle*/
 
-        // lv_scale_set_total_tick_count(clock_scale, 61);
-        // lv_scale_set_major_tick_every(clock_scale, 5);
+        LV_IMG_DECLARE(img_hand)
 
-        // static const char * hour_ticks[] = {"12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", NULL};
-        // lv_scale_set_text_src(clock_scale, hour_ticks);
+        /*Add a the hands from images*/
+        lv_meter_indicator_t * indic_min = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
+        lv_meter_indicator_t * indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
 
-        // static lv_style_t indicator_style;
-        // lv_style_init(&indicator_style);
+        /*Create an animation to set the value*/
+        lv_anim_t a;
+        lv_anim_init(&a);
+        lv_anim_set_exec_cb(&a, set_clock);
+        lv_anim_set_values(&a, 0, 60);
+        lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
+        lv_anim_set_time(&a, 2000);     /*2 sec for 1 turn of the minute hand (1 hour)*/
+        lv_anim_set_var(&a, indic_min);
+        lv_anim_start(&a);
 
-        // /* Label style properties */
-        // lv_style_set_text_font(&indicator_style, LV_FONT_DEFAULT);
-        // lv_style_set_text_color(&indicator_style, lv_palette_main(LV_PALETTE_YELLOW));
-
-        // /* Major tick properties */
-        // lv_style_set_line_color(&indicator_style, lv_palette_main(LV_PALETTE_YELLOW));
-        // lv_style_set_length(&indicator_style, 8); /* tick length */
-        // lv_style_set_line_width(&indicator_style, 2); /* tick width */
-        // lv_obj_add_style(clock_scale, &indicator_style, LV_PART_INDICATOR);
-
-        // /* Minor tick properties */
-        // static lv_style_t minor_ticks_style;
-        // lv_style_init(&minor_ticks_style);
-        // lv_style_set_line_color(&minor_ticks_style, lv_palette_main(LV_PALETTE_YELLOW));
-        // lv_style_set_length(&minor_ticks_style, 6); /* tick length */
-        // lv_style_set_line_width(&minor_ticks_style, 2); /* tick width */
-        // lv_obj_add_style(clock_scale, &minor_ticks_style, LV_PART_ITEMS);
-
-        // /* Main line properties */
-        // static lv_style_t main_line_style;
-        // lv_style_init(&main_line_style);
-        // lv_style_set_arc_color(&main_line_style, lv_color_black());
-        // lv_style_set_arc_width(&main_line_style, 5);
-        // lv_obj_add_style(clock_scale, &main_line_style, LV_PART_MAIN);
-
-        // lv_scale_set_range(clock_scale, 0, 60);
-
-        // lv_scale_set_angle_range(clock_scale, 360);
-        // lv_scale_set_rotation(clock_scale, 270);
-
-        // minute_hand = lv_line_create(clock_scale);
-        // lv_line_set_points_mutable(minute_hand, minute_hand_points, 2);
-
-        // lv_obj_set_style_line_width(minute_hand, 3, 0);
-        // lv_obj_set_style_line_rounded(minute_hand, true, 0);
-        // lv_obj_set_style_line_color(minute_hand, lv_color_white(), 0);
-
-        // hour_hand = lv_line_create(clock_scale);
-
-        // lv_obj_set_style_line_width(hour_hand, 5, 0);
-        // lv_obj_set_style_line_rounded(hour_hand, true, 0);
-        // lv_obj_set_style_line_color(hour_hand, lv_palette_main(LV_PALETTE_RED), 0);
-
-        // hour = 11;
-        // minute = 5;
-        // lv_timer_t * timer = lv_timer_create(timer_cb, 250, NULL);
-        // lv_timer_ready(timer);
+        lv_anim_set_var(&a, indic_hour);
+        lv_anim_set_time(&a, 24000);    /*24 sec for 1 turn of the hour hand*/
+        lv_anim_set_values(&a, 0, 60);
+        lv_anim_start(&a);
         break;
     
     default:

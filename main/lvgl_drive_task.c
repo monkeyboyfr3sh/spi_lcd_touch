@@ -80,7 +80,8 @@ void lvgl_unlock(void)
 void lvgl_drive_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL drive task");
-    
+    ESP_LOGI(TAG, "LittlevGL version: %s", lv_version_info());
+
     ESP_LOGI(TAG, "Creating lvgl mutex");
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
@@ -123,7 +124,7 @@ void lvgl_drive_task(void *arg)
     ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_lock(-1)) {
-        create_lvgl_ui(meter_display);
+        create_lvgl_ui(bar_display);
         // Release the mutex
         lvgl_unlock();
     }

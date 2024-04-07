@@ -24,6 +24,7 @@
     "display_config.h": "c",
     "cstdlib": "c",
     "lvgl.h": "c",
-    "lvgl_ui.h": "c"
+    "lvgl_ui.h": "c",
+    "lv_examples.h": "c"
   }
 }
