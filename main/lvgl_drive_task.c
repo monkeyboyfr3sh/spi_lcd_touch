@@ -44,13 +44,13 @@ static void i2c_master_init() {
     i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
-static void example_increase_lvgl_tick(void *arg)
+static void increase_lvgl_tick(void *arg)
 {
     /* Tell LVGL how many milliseconds has elapsed */
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
-bool example_lvgl_lock(int timeout_ms)
+bool lvgl_lock(int timeout_ms)
 {
     // Convert timeout in milliseconds to FreeRTOS ticks
     // If `timeout_ms` is set to -1, the program will block until the condition is met
@@ -58,7 +58,7 @@ bool example_lvgl_lock(int timeout_ms)
     return xSemaphoreTakeRecursive(lvgl_mux, timeout_ticks) == pdTRUE;
 }
 
-void example_lvgl_unlock(void)
+void lvgl_unlock(void)
 {
     xSemaphoreGiveRecursive(lvgl_mux);
 }
@@ -72,21 +72,23 @@ void lvgl_drive_task(void *arg)
     assert(lvgl_mux);
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
-    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
+    
+    // Tick interface for LVGL (using esp_timer to generate periodic event)
     const esp_timer_create_args_t lvgl_tick_timer_args = {
-        .callback = &example_increase_lvgl_tick,
+        .callback = &increase_lvgl_tick,
         .name = "lvgl_tick"
     };
+
     esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
 
     ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
-    if (example_lvgl_lock(-1)) {
-        example_lvgl_demo_ui();
+    if (lvgl_lock(-1)) {
+        create_lvgl_ui();
         // Release the mutex
-        example_lvgl_unlock();
+        lvgl_unlock();
     }
 
     ESP_LOGI(TAG, "Initializing filters");
@@ -139,14 +141,14 @@ void lvgl_drive_task(void *arg)
         // ESP_LOGI("main","%f, %f, %f", x, y, z);
 
         // Lock the mutex due to the LVGL APIs are not thread-safe
-        if (example_lvgl_lock(-1)) {
+        if (lvgl_lock(-1)) {
             task_delay_ms = lv_timer_handler();
 
             // Update UI
             update_bars(x, y, z);
 
             // Release the mutex
-            example_lvgl_unlock();
+            lvgl_unlock();
         }
         if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) {
             task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;

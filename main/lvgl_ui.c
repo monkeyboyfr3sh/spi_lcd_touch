@@ -46,7 +46,7 @@ void update_bars(float new_x, float new_y, float new_z)
     }
 }
 
-void example_lvgl_demo_ui(void)
+void create_lvgl_ui(void)
 {
     lv_disp_t *disp = NULL; // This will fetch default
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
