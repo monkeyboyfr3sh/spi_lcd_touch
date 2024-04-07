@@ -2,12 +2,10 @@
 #include "lvgl_ui.h"
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 // Define a threshold for the difference
 #define THRESHOLD 0.0
-
-// Define the clock object globally
-lv_obj_t *hour_hand, *minute_hand, *second_hand, *clock;
 
 // Create labels for x, y, and z
 static lv_obj_t *label_x;
@@ -83,12 +81,23 @@ void update_bars(float new_x, float new_y, float new_z) {
 static lv_obj_t * clock_meter;
 lv_meter_indicator_t * indic_min;
 lv_meter_indicator_t * indic_hour; 
+lv_timer_t * clock_timer;
 
-static void set_clock(void * indic, int32_t v)
+static void set_clock(void)
 {
-    lv_meter_set_indicator_end_value(clock_meter, indic, v);
-}
+    time_t rawtime;
+    struct tm * timeinfo;
 
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+
+    int32_t system_hours = timeinfo->tm_hour;
+    int32_t system_minutes = timeinfo->tm_min;
+    int32_t system_seconds = timeinfo->tm_sec;
+
+    lv_meter_set_indicator_end_value(clock_meter, indic_min, system_seconds);
+    lv_meter_set_indicator_end_value(clock_meter, indic_hour, system_minutes);
+}
 
 void create_lvgl_ui(display_mode_t display_mode)
 {
@@ -105,15 +114,7 @@ void create_lvgl_ui(display_mode_t display_mode)
 
     // Stop animations when switching away from clock display
     if (current_display_code == clock_display) {
-        // Stop the minute hand animation
-        lv_anim_del(indic_min, set_clock);
-        // Stop the hour hand animation
-        lv_anim_del(indic_hour, set_clock);
-
-        // Delete the objects associated with the animation
-        lv_obj_del(clock_meter);
-
-        // lv_anim_del(clock_meter, NULL); // Delete animations related to clock display
+        lv_timer_del(clock_timer); 
     }
 
     // Clear the screen before re-creating the UI
@@ -201,20 +202,7 @@ void create_lvgl_ui(display_mode_t display_mode)
         indic_min = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
         indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
 
-        /*Create an animation to set the value*/
-        lv_anim_t a;
-        lv_anim_init(&a);
-        lv_anim_set_exec_cb(&a, set_clock);
-        lv_anim_set_values(&a, 0, 60);
-        lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
-        lv_anim_set_time(&a, 2000);     /*2 sec for 1 turn of the minute hand (1 hour)*/
-        lv_anim_set_var(&a, indic_min);
-        lv_anim_start(&a);
-
-        lv_anim_set_var(&a, indic_hour);
-        lv_anim_set_time(&a, 24000);    /*24 sec for 1 turn of the hour hand*/
-        lv_anim_set_values(&a, 0, 60);
-        lv_anim_start(&a);
+        clock_timer = lv_timer_create(set_clock, 100, NULL);
         break;
     
     default:
