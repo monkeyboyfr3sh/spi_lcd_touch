@@ -89,7 +89,7 @@ void lvgl_drive_task(void *arg)
     i2c_master_init();
 
     ESP_LOGI(TAG, "Initializing filters");
-    static size_t buff_len = 100;
+    static size_t buff_len = 75;
     initializeCircularBuffer(&buff_x, buff_len);
     initializeCircularBuffer(&buff_y, buff_len);
     initializeCircularBuffer(&buff_z, buff_len);
