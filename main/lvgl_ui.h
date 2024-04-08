@@ -9,6 +9,8 @@ typedef enum {
     display_mode_unknown
 } display_mode_t;
 
-void update_bars(float new_x, float new_y, float new_z);
+void set_accelerometer_data(float new_x, float new_y, float new_z);
+void get_accelerometer_data(float *get_x_buff, float *get_y_buff, float *get_z_buff);
+
 void create_lvgl_ui(display_mode_t display_mode);
 void cycle_display_code(void);

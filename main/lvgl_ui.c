@@ -3,9 +3,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 
 // Define a threshold for the difference
 #define THRESHOLD 0.0
+
+static float accelerometer_x;
+static float accelerometer_y;
+static float accelerometer_z;
 
 // Create labels for x, y, and z
 static lv_obj_t *label_x;
@@ -29,6 +34,7 @@ const float graph_sensitivity = 100.0;
 
 // Flag to indicate which display code is currently active
 static display_mode_t current_display_code = bar_display;
+lv_timer_t * accelerometer_sample_draw_timer;
 
 double xy_to_degrees(double x, double y) {
     // Calculate the angle in radians
@@ -76,7 +82,29 @@ void cycle_display_code(void)
     create_lvgl_ui(new_display_code);
 }
 
-void update_bars(float new_x, float new_y, float new_z) {
+void set_accelerometer_data(float new_x, float new_y, float new_z)
+{
+    accelerometer_x = new_x;
+    accelerometer_y = new_y;
+    accelerometer_z = new_z;
+}
+
+void get_accelerometer_data(float *get_x_buff, float *get_y_buff, float *get_z_buff)
+{
+    *get_x_buff = accelerometer_x;
+    *get_y_buff = accelerometer_y;
+    *get_z_buff = accelerometer_z;
+}
+
+static void update_bars(void)
+{
+    float new_x;
+    float new_y;
+    float new_z;
+    
+    // Get current acceleromter data
+    get_accelerometer_data(&new_x,&new_y,&new_z);
+
     // Call the function to update the display based on the chosen display code
     update_display_code(-new_x, -new_y, new_z);
 }
@@ -98,7 +126,12 @@ static void set_clock(void)
     int32_t system_minutes = timeinfo->tm_min;
     int32_t system_seconds = timeinfo->tm_sec;
 
-    lv_meter_set_indicator_end_value(clock_meter, indic_min, system_seconds);
+    // Get milliseconds
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int32_t system_milliseconds = tv.tv_usec / 1000;
+
+    lv_meter_set_indicator_end_value(clock_meter, indic_min, (system_seconds * 10) );
     lv_meter_set_indicator_end_value(clock_meter, indic_hour, system_minutes);
 }
 
@@ -114,10 +147,22 @@ void create_lvgl_ui(display_mode_t display_mode)
     const int bar_range = (acceleration * g_scale) * graph_sensitivity; // Applying graph sensitivity scale
     const int bar_height = 45;
     const int bar_offset = 60;
+    static bool setup = false;
 
-    // Stop animations when switching away from clock display
-    if (current_display_code == clock_display) {
-        lv_timer_del(clock_timer); 
+    if(setup){
+        setup = false;
+        // Stop animations when switching away from clock display
+        if (current_display_code == clock_display) {
+            lv_timer_del(clock_timer); 
+        }
+
+        if (current_display_code == bar_display) {
+            lv_timer_del(accelerometer_sample_draw_timer); 
+        }
+
+        if (current_display_code == meter_display) {
+            lv_timer_del(accelerometer_sample_draw_timer); 
+        }
     }
 
     // Clear the screen before re-creating the UI
@@ -150,8 +195,11 @@ void create_lvgl_ui(display_mode_t display_mode)
         // Align labels to the center of the screen
         lv_obj_align(label_tilt, LV_ALIGN_CENTER, 0, -30);
 
+        accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
+
         lv_label_set_text(label_tilt,"XY Tilt");
 
+        setup = true;
         break;
 
     case bar_display:
@@ -189,6 +237,30 @@ void create_lvgl_ui(display_mode_t display_mode)
         lv_label_set_text(label_x,"X");
         lv_label_set_text(label_y,"Y");
         lv_label_set_text(label_z,"Z");
+
+        // Define a style for the labels
+        static lv_style_t label_style;
+        lv_style_init(&label_style);
+        lv_style_set_text_color(&label_style, lv_color_make(255, 255, 255)); // Set text color to red (assuming RGB color format)
+
+        // Define a style for the bars
+        static lv_style_t bar_style;
+        lv_style_init(&bar_style);
+        // lv_style_set_bg_color(&bar_style, lv_color_make(0, 255, 0)); // Set background color to green (assuming RGB color format)
+
+        // Apply the style to each bar
+        lv_obj_add_style(bar_x, &bar_style, LV_PART_MAIN);
+        lv_obj_add_style(bar_y, &bar_style, LV_PART_MAIN);
+        lv_obj_add_style(bar_z, &bar_style, LV_PART_MAIN);
+
+        // Apply the style to each label
+        lv_obj_add_style(label_x, &label_style, LV_PART_MAIN );
+        lv_obj_add_style(label_y, &label_style, LV_PART_MAIN );
+        lv_obj_add_style(label_z, &label_style, LV_PART_MAIN );
+
+        accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
+
+        setup = true;
         break;
 
     case clock_display:
@@ -201,7 +273,7 @@ void create_lvgl_ui(display_mode_t display_mode)
         /*61 ticks in a 360 degrees range (the last and the first line overlaps)*/
         lv_meter_scale_t * scale_min = lv_meter_add_scale(clock_meter);
         lv_meter_set_scale_ticks(clock_meter, scale_min, 61, 1, 10, lv_palette_main(LV_PALETTE_GREY));
-        lv_meter_set_scale_range(clock_meter, scale_min, 0, 60, 360, 270);
+        lv_meter_set_scale_range(clock_meter, scale_min, 0, 600, 360, 270);
 
         /*Create another scale for the hours. It's only visual and contains only major ticks*/
         lv_meter_scale_t * scale_hour = lv_meter_add_scale(clock_meter);
@@ -216,6 +288,7 @@ void create_lvgl_ui(display_mode_t display_mode)
         indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
 
         clock_timer = lv_timer_create(set_clock, 100, NULL);
+        setup = true;
         break;
     
     default:

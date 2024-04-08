@@ -168,7 +168,7 @@ void lvgl_drive_task(void *arg)
             task_delay_ms = lv_timer_handler();
 
             // Update UI
-            update_bars(x, y, z);
+            set_accelerometer_data(x, y, z);
 
             prev_btn_lvl = curr_btn_lvl;
             curr_btn_lvl = gpio_get_level(GPIO_NUM_0);
