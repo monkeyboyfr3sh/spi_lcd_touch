@@ -349,8 +349,8 @@ void create_lvgl_ui(display_mode_t display_mode)
 
     btn = lv_btn_create(scr);
     lv_obj_t * lbl = lv_label_create(btn);
-    lv_label_set_text_static(lbl, LV_SYMBOL_RIGHT" NECT");
-    lv_obj_align(btn, LV_ALIGN_OUT_TOP_MID, 60, 0);
+    lv_label_set_text_static(lbl, LV_SYMBOL_RIGHT"");
+    lv_obj_align(btn, LV_ALIGN_OUT_BOTTOM_MID, 100, 200);
     /*Button event*/
     lv_obj_add_event_cb(btn, btn_cb, LV_EVENT_CLICKED, disp);
     // Update display mode var
