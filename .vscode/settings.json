@@ -27,6 +27,9 @@
     "lvgl_ui.h": "c",
     "lv_examples.h": "c",
     "semphr.h": "c",
-    "display_hardware_helpers.h": "c"
+    "display_hardware_helpers.h": "c",
+    "spi_master.h": "c",
+    "sdkconfig.h": "c",
+    "esp_lcd_touch.h": "c"
   }
 }

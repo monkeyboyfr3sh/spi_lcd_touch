@@ -1,5 +1,3 @@
-#include "display_hardware_helpers.h"
-
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -17,8 +15,6 @@
 #include "esp_log.h"
 #include "lvgl.h"
 
-#include "display_config.h"
-
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
 #include "esp_lcd_ili9341.h"
 #elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
@@ -27,9 +23,12 @@
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
 #include "esp_lcd_touch_stmpe610.h"
+#elif CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_CST816S
+#include "esp_lcd_touch_cst816s.h"
 #endif
 
-#include "esp_lcd_touch_cst816s.h"
+#include "display_config.h"
+#include "display_hardware_helpers.h"
 
 // Tag for logging
 static const char *TAG = "dsply_hw_help";
@@ -37,14 +36,6 @@ static const char *TAG = "dsply_hw_help";
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 esp_lcd_touch_handle_t tp = NULL;
 #endif
-
-// I2C Configuration
-#define I2C_MASTER_SCL_IO           7        // GPIO number for I2C master clock
-#define I2C_MASTER_SDA_IO           6        // GPIO number for I2C master data
-#define I2C_MASTER_NUM              I2C_NUM_0 // I2C port number for master dev
-#define I2C_MASTER_TX_BUF_DISABLE   0         // I2C master no buffer needed
-#define I2C_MASTER_RX_BUF_DISABLE   0         // I2C master no buffer needed
-#define I2C_MASTER_FREQ_HZ          400000    // I2C master clock frequency
 
 // Function to initialize I2C
 static void i2c_master_init() {
@@ -148,12 +139,17 @@ static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
         data->point.x = touchpad_x[0];
         data->point.y = touchpad_y[0];
         data->state = LV_INDEV_STATE_PRESSED;
-        ESP_LOGI(TAG,"x:%d,y:%d", data->point.x, data->point.y);
+        ESP_LOGI(TAG,"touch at (x,y)=(%d,%d)", data->point.x, data->point.y);
     } else {
+        ESP_LOGI(TAG,"touch released");
         data->state = LV_INDEV_STATE_RELEASED;
     }
 }
 #endif
+void touch_cb(esp_lcd_touch_handle_t tp)
+{
+    ESP_LOGI(TAG, "Touch!");
+}
 
 void initialize_display_drivers(void)
 {
@@ -227,17 +223,18 @@ void initialize_display_drivers(void)
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    // esp_lcd_panel_io_spi_config_t tp_io_config = ESP_LCD_TOUCH_IO_SPI_STMPE610_CONFIG(EXAMPLE_PIN_NUM_TOUCH_CS);
-    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
+
+#if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
+ 
     // Attach the TOUCH to the SPI bus
-    // ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &tp_io_config, &tp_io_handle));
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c_v1(TOUCH_HOST, &tp_io_config, &tp_io_handle));
+    esp_lcd_panel_io_spi_config_t tp_io_config = ESP_LCD_TOUCH_IO_SPI_STMPE610_CONFIG(EXAMPLE_PIN_NUM_TOUCH_CS);
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &tp_io_config, &tp_io_handle));
 
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = EXAMPLE_LCD_H_RES,
         .y_max = EXAMPLE_LCD_V_RES,
-        .rst_gpio_num = GPIO_NUM_13,
-        .int_gpio_num = GPIO_NUM_5,
+        .rst_gpio_num = -1,
+        .int_gpio_num = -1,
         .flags = {
             .swap_xy = 0,
             .mirror_x = 0,
@@ -245,12 +242,36 @@ void initialize_display_drivers(void)
         },
     };
 
-#if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
     ESP_LOGI(TAG, "Initialize touch controller STMPE610");
-    // ESP_ERROR_CHECK(esp_lcd_touch_new_spi_stmpe610(tp_io_handle, &tp_cfg, &tp));
+    ESP_ERROR_CHECK(esp_lcd_touch_new_spi_stmpe610(tp_io_handle, &tp_cfg, &tp));
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
 
+#if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_CST816S
+
+    // Attach the TOUCH to the I2C bus
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c_v1(TOUCH_HOST, &tp_io_config, &tp_io_handle));
+
+    esp_lcd_touch_config_t tp_cfg = {
+        .x_max = EXAMPLE_LCD_H_RES,
+        .y_max = EXAMPLE_LCD_V_RES,
+        .rst_gpio_num = LCD_TOUCH_RST,
+        .int_gpio_num = LCD_TOUCH_INT,
+        .flags = {
+            .swap_xy = 1,
+            .mirror_x = 0,
+            .mirror_y = 0,
+        },
+        .levels = {
+            .interrupt = 1,
+            .reset = 0,
+        },
+        .interrupt_callback = NULL,
+    };
+
+    ESP_LOGI(TAG, "Initialize touch controller CST816S");
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_cst816s(tp_io_handle, &tp_cfg, &tp));
+#endif // CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_CST816S
 
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 

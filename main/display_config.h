@@ -21,6 +21,9 @@
 #define EXAMPLE_PIN_NUM_LCD_CS         9
 #define EXAMPLE_PIN_NUM_BK_LIGHT       2
 #define EXAMPLE_PIN_NUM_TOUCH_CS       -1
+#define LCD_TOUCH_RST       GPIO_NUM_13
+#define LCD_TOUCH_INT       GPIO_NUM_5
+
 
 // The pixel number in horizontal and vertical
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
@@ -34,3 +37,11 @@
 // Bit number used to represent command and parameter
 #define EXAMPLE_LCD_CMD_BITS           8
 #define EXAMPLE_LCD_PARAM_BITS         8
+
+// I2C Configuration
+#define I2C_MASTER_SCL_IO           7        // GPIO number for I2C master clock
+#define I2C_MASTER_SDA_IO           6        // GPIO number for I2C master data
+#define I2C_MASTER_NUM              I2C_NUM_0 // I2C port number for master dev
+#define I2C_MASTER_TX_BUF_DISABLE   0         // I2C master no buffer needed
+#define I2C_MASTER_RX_BUF_DISABLE   0         // I2C master no buffer needed
+#define I2C_MASTER_FREQ_HZ          400000    // I2C master clock frequency
