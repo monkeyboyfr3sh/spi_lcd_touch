@@ -104,17 +104,6 @@ void lvgl_drive_task(void *arg)
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
 
-    ESP_LOGI(TAG, "Install LVGL sample timer");
-    // Tick interface for LVGL (using esp_timer to generate periodic event)
-    const esp_timer_create_args_t lvgl_sample_timer_args = {
-        .callback = &sample_qmi8658_cb,
-        .name = "lvgl_sample"
-    };
-
-    esp_timer_handle_t lvgl_sample_timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_sample_timer_args, &lvgl_sample_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_sample_timer, LVGL_SAMPLE_PERIOD_US));
-
     ESP_LOGI(TAG, "Install LVGL update timer");
     // Tick interface for LVGL (using esp_timer to generate periodic event)
     const esp_timer_create_args_t lvgl_update_timer_args = {
@@ -145,6 +134,17 @@ void lvgl_drive_task(void *arg)
     if(qmi8658_whoami_check(I2C_MASTER_NUM)!=ESP_OK){
         vTaskDelete(NULL);
     }
+
+    ESP_LOGI(TAG, "Install LVGL sample timer");
+    // Tick interface for LVGL (using esp_timer to generate periodic event)
+    const esp_timer_create_args_t lvgl_sample_timer_args = {
+        .callback = &sample_qmi8658_cb,
+        .name = "lvgl_sample"
+    };
+
+    esp_timer_handle_t lvgl_sample_timer = NULL;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_sample_timer_args, &lvgl_sample_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_sample_timer, LVGL_SAMPLE_PERIOD_US));
 
     // Turn on LCD backlight
     ESP_LOGI(TAG, "Turn on LCD backlight");

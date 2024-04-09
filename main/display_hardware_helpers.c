@@ -139,9 +139,9 @@ static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
         data->point.x = touchpad_x[0];
         data->point.y = touchpad_y[0];
         data->state = LV_INDEV_STATE_PRESSED;
-        ESP_LOGI(TAG,"touch at (x,y)=(%d,%d)", data->point.x, data->point.y);
+        ESP_LOGD(TAG,"touch at (x,y)=(%d,%d)", data->point.x, data->point.y);
     } else {
-        ESP_LOGI(TAG,"touch released");
+        ESP_LOGD(TAG,"touch released");
         data->state = LV_INDEV_STATE_RELEASED;
     }
 }
@@ -258,7 +258,7 @@ void initialize_display_drivers(void)
         .rst_gpio_num = LCD_TOUCH_RST,
         .int_gpio_num = LCD_TOUCH_INT,
         .flags = {
-            .swap_xy = 1,
+            .swap_xy = 0,
             .mirror_x = 0,
             .mirror_y = 0,
         },

@@ -154,6 +154,13 @@ static void update_plot(void)
     lv_chart_set_next_value(chart, ser3, (int)new_z * graph_sensitivity);
 }
 
+static lv_obj_t * btn;
+static void btn_cb(lv_event_t * e)
+{
+    // lv_disp_t *disp = lv_event_get_user_data(e);
+    printf("Event\n");
+}
+
 void create_lvgl_ui(display_mode_t display_mode)
 {
     lv_disp_t *disp = NULL; // This will fetch default
@@ -340,6 +347,12 @@ void create_lvgl_ui(display_mode_t display_mode)
         break;
     }
 
+    btn = lv_btn_create(scr);
+    lv_obj_t * lbl = lv_label_create(btn);
+    lv_label_set_text_static(lbl, LV_SYMBOL_RIGHT" NECT");
+    lv_obj_align(btn, LV_ALIGN_OUT_TOP_MID, 60, 0);
+    /*Button event*/
+    lv_obj_add_event_cb(btn, btn_cb, LV_EVENT_CLICKED, disp);
     // Update display mode var
     current_display_code = display_mode;
 }
