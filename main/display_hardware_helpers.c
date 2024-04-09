@@ -316,3 +316,62 @@ void initialize_display_drivers(void)
     lv_indev_drv_register(&indev_drv);
 #endif
 }
+
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "driver/ledc.h"
+
+// Define the PWM parameters
+#define PWM_OUTPUT_IO    EXAMPLE_PIN_NUM_BK_LIGHT    // Example GPIO pin for PWM output
+#define PWM_OUTPUT_CHANNEL LEDC_CHANNEL_0
+#define PWM_OUTPUT_FREQ   1000 // PWM frequency in Hz
+#define PWM_RESOLUTION    LEDC_TIMER_13_BIT // PWM resolution (13-bit for high resolution)
+
+// Configure PWM timer
+ledc_timer_config_t timer_conf = {
+    .duty_resolution = PWM_RESOLUTION,
+    .freq_hz = PWM_OUTPUT_FREQ,
+    .speed_mode = LEDC_LOW_SPEED_MODE,
+    .timer_num = LEDC_TIMER_0
+};
+// Configure PWM channel
+ledc_channel_config_t ledc_conf = {
+    .gpio_num = PWM_OUTPUT_IO,
+    .speed_mode = LEDC_LOW_SPEED_MODE,
+    .channel = PWM_OUTPUT_CHANNEL,
+    .intr_type = LEDC_INTR_DISABLE,
+    .timer_sel = LEDC_TIMER_0,
+    .duty = 0
+};
+
+float brightness_ = 0.0;
+
+void config_pwm(void)
+{
+    // Configure PWM timer  
+    ledc_timer_config(&timer_conf);
+
+    // Configure PWM channel
+    ledc_channel_config(&ledc_conf);
+
+    // for(int duty = 0; duty <= (1 << PWM_RESOLUTION); duty++) {
+    float brightness = 0.3;
+    uint32_t duty = (1 << PWM_RESOLUTION)*brightness;
+    ledc_set_duty(ledc_conf.speed_mode, ledc_conf.channel, duty);
+    ledc_update_duty(ledc_conf.speed_mode, ledc_conf.channel);
+}
+
+void set_backlight_brightness(float brightness)
+{
+    brightness_ = brightness;
+    uint32_t duty = (1 << PWM_RESOLUTION)*brightness;
+    ledc_set_duty(ledc_conf.speed_mode, ledc_conf.channel, duty);
+    ledc_update_duty(ledc_conf.speed_mode, ledc_conf.channel); 
+}
+
+float get_backlight_brightness(void)
+{
+    return brightness_;
+}

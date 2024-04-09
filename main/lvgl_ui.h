@@ -6,6 +6,7 @@ typedef enum {
     meter_display,
     clock_display,
     plot_display,
+    slider_display,
     display_mode_max,
     display_mode_unknown
 } display_mode_t;
