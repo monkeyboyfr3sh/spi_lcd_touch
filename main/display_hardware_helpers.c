@@ -151,6 +151,8 @@ void touch_cb(esp_lcd_touch_handle_t tp)
     ESP_LOGI(TAG, "Touch!");
 }
 
+
+
 void initialize_display_drivers(void)
 {
     static lv_disp_draw_buf_t disp_buf; // Contains internal graphic buffer(s) called draw buffer(s)
@@ -163,6 +165,7 @@ void initialize_display_drivers(void)
         .pin_bit_mask = 1ULL << EXAMPLE_PIN_NUM_BK_LIGHT
     };
     ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
+    gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT,EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL);
 
     // Initialize I2C
     ESP_LOGI(TAG, "Initializing I2C");

@@ -75,6 +75,46 @@ void lvgl_unlock(void)
     xSemaphoreGiveRecursive(lvgl_mux);
 }
 
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "driver/ledc.h"
+
+// Define the PWM parameters
+#define PWM_OUTPUT_IO    EXAMPLE_PIN_NUM_BK_LIGHT    // Example GPIO pin for PWM output
+#define PWM_OUTPUT_CHANNEL LEDC_CHANNEL_0
+#define PWM_OUTPUT_FREQ   1000 // PWM frequency in Hz
+#define PWM_RESOLUTION    LEDC_TIMER_13_BIT // PWM resolution (13-bit for high resolution)
+
+void config_pwm(void){
+    // Configure PWM timer
+    ledc_timer_config_t timer_conf = {
+        .duty_resolution = PWM_RESOLUTION,
+        .freq_hz = PWM_OUTPUT_FREQ,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .timer_num = LEDC_TIMER_0
+    };
+    ledc_timer_config(&timer_conf);
+
+    // Configure PWM channel
+    ledc_channel_config_t ledc_conf = {
+        .gpio_num = PWM_OUTPUT_IO,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = PWM_OUTPUT_CHANNEL,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LEDC_TIMER_0,
+        .duty = 0
+    };
+    ledc_channel_config(&ledc_conf);
+
+    // for(int duty = 0; duty <= (1 << PWM_RESOLUTION); duty++) {
+    float brightness = 0.3;
+    uint32_t duty = (1 << PWM_RESOLUTION)*brightness;
+    ledc_set_duty(ledc_conf.speed_mode, ledc_conf.channel, duty);
+    ledc_update_duty(ledc_conf.speed_mode, ledc_conf.channel);
+}
+
 void lvgl_drive_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL drive task");
@@ -148,7 +188,10 @@ void lvgl_drive_task(void *arg)
 
     // Turn on LCD backlight
     ESP_LOGI(TAG, "Turn on LCD backlight");
-    gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
+    // gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
+
+    // Configure PWM periph
+    config_pwm();
 
     TickType_t last_switch_time = xTaskGetTickCount();
 

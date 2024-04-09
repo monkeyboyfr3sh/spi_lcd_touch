@@ -30,6 +30,9 @@
     "display_hardware_helpers.h": "c",
     "spi_master.h": "c",
     "sdkconfig.h": "c",
-    "esp_lcd_touch.h": "c"
+    "esp_lcd_touch.h": "c",
+    "ledc.h": "c",
+    "gpio.h": "c",
+    "task.h": "c"
   }
 }
