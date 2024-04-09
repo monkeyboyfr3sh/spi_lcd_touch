@@ -3,6 +3,7 @@ set(MAIN_SRC_FILES
     "main.c"
     "lvgl_ui.c"
     "lvgl_drive_task.c"
+    "display_hardware_helpers.c"
 )
 
 idf_component_register(
