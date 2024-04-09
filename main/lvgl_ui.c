@@ -84,8 +84,8 @@ void cycle_display_code(void)
 
 void set_accelerometer_data(float new_x, float new_y, float new_z)
 {
-    accelerometer_x = new_x;
-    accelerometer_y = new_y;
+    accelerometer_x = new_y;
+    accelerometer_y = -new_x;
     accelerometer_z = new_z;
 }
 
@@ -106,7 +106,7 @@ static void update_bars(void)
     get_accelerometer_data(&new_x,&new_y,&new_z);
 
     // Call the function to update the display based on the chosen display code
-    update_display_code(-new_x, -new_y, new_z);
+    update_display_code(new_x, new_y, new_z);
 }
 
 static lv_obj_t * clock_meter;
