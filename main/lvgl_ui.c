@@ -158,7 +158,7 @@ static lv_obj_t * btn;
 static void btn_cb(lv_event_t * e)
 {
     // lv_disp_t *disp = lv_event_get_user_data(e);
-    printf("Event\n");
+    cycle_display_code();
 }
 
 void create_lvgl_ui(display_mode_t display_mode)
