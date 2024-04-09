@@ -1,6 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
-  "idf.portWin": "COM3",
+  "idf.portWin": "COM4",
   "idf.flashType": "UART",
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
@@ -25,6 +25,7 @@
     "cstdlib": "c",
     "lvgl.h": "c",
     "lvgl_ui.h": "c",
-    "lv_examples.h": "c"
+    "lv_examples.h": "c",
+    "semphr.h": "c"
   }
 }

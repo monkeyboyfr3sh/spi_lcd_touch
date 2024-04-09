@@ -8,6 +8,7 @@
 
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+#include <driver/i2c.h>
 
 #include "sdkconfig.h"
 #include "esp_err.h"
@@ -28,12 +29,36 @@
 #include "esp_lcd_touch_stmpe610.h"
 #endif
 
+#include "esp_lcd_touch_cst816s.h"
+
 // Tag for logging
 static const char *TAG = "example";
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 esp_lcd_touch_handle_t tp = NULL;
 #endif
+
+// I2C Configuration
+#define I2C_MASTER_SCL_IO           7        // GPIO number for I2C master clock
+#define I2C_MASTER_SDA_IO           6        // GPIO number for I2C master data
+#define I2C_MASTER_NUM              I2C_NUM_0 // I2C port number for master dev
+#define I2C_MASTER_TX_BUF_DISABLE   0         // I2C master no buffer needed
+#define I2C_MASTER_RX_BUF_DISABLE   0         // I2C master no buffer needed
+#define I2C_MASTER_FREQ_HZ          400000    // I2C master clock frequency
+
+// Function to initialize I2C
+static void i2c_master_init() {
+    //FIXME: Pretty sure we need to make sure we're setting all of the parameters inside this struct
+    i2c_config_t conf;
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = I2C_MASTER_SDA_IO;
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_io_num = I2C_MASTER_SCL_IO;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
+    i2c_param_config(I2C_MASTER_NUM, &conf);
+    i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+}
 
 // Callback function to notify LVGL when flush is ready
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
@@ -122,6 +147,7 @@ static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
         data->point.x = touchpad_x[0];
         data->point.y = touchpad_y[0];
         data->state = LV_INDEV_STATE_PRESSED;
+        ESP_LOGI(TAG,"x:%d,y:%d", data->point.x, data->point.y);
     } else {
         data->state = LV_INDEV_STATE_RELEASED;
     }
@@ -140,6 +166,10 @@ void app_main(void)
         .pin_bit_mask = 1ULL << EXAMPLE_PIN_NUM_BK_LIGHT
     };
     ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
+
+    // Initialize I2C
+    ESP_LOGI(TAG, "Initializing I2C");
+    i2c_master_init();
 
     // Initialize SPI bus
     ESP_LOGI(TAG, "Initialize SPI bus");
@@ -196,15 +226,17 @@ void app_main(void)
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    esp_lcd_panel_io_spi_config_t tp_io_config = ESP_LCD_TOUCH_IO_SPI_STMPE610_CONFIG(EXAMPLE_PIN_NUM_TOUCH_CS);
+    // esp_lcd_panel_io_spi_config_t tp_io_config = ESP_LCD_TOUCH_IO_SPI_STMPE610_CONFIG(EXAMPLE_PIN_NUM_TOUCH_CS);
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
     // Attach the TOUCH to the SPI bus
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &tp_io_config, &tp_io_handle));
+    // ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &tp_io_config, &tp_io_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c_v1(TOUCH_HOST, &tp_io_config, &tp_io_handle));
 
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = EXAMPLE_LCD_H_RES,
         .y_max = EXAMPLE_LCD_V_RES,
-        .rst_gpio_num = -1,
-        .int_gpio_num = -1,
+        .rst_gpio_num = GPIO_NUM_13,
+        .int_gpio_num = GPIO_NUM_5,
         .flags = {
             .swap_xy = 0,
             .mirror_x = 0,
@@ -214,8 +246,11 @@ void app_main(void)
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
     ESP_LOGI(TAG, "Initialize touch controller STMPE610");
-    ESP_ERROR_CHECK(esp_lcd_touch_new_spi_stmpe610(tp_io_handle, &tp_cfg, &tp));
+    // ESP_ERROR_CHECK(esp_lcd_touch_new_spi_stmpe610(tp_io_handle, &tp_cfg, &tp));
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
+
+    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_cst816s(tp_io_handle, &tp_cfg, &tp));
+
 #endif // CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
 
     // Initialize LVGL library
@@ -240,6 +275,9 @@ void app_main(void)
     disp_drv.draw_buf = &disp_buf;
     disp_drv.user_data = panel_handle;
 
+    // Create LVGL task
+    lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
+
 #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
     // Register touch driver to LVGL
     ESP_LOGI(TAG, "Register touch driver to LVGL");
@@ -253,9 +291,6 @@ void app_main(void)
     lv_indev_drv_register(&indev_drv);
 #endif
 
-    // Create LVGL task
     ESP_LOGI(TAG, "Create LVGL task");
-    lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
-
     xTaskCreate(lvgl_drive_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 }

@@ -22,31 +22,11 @@
 
 static const char * TAG = "lvgl-drive";
 
-// I2C Configuration
-#define I2C_MASTER_SCL_IO           7        // GPIO number for I2C master clock
-#define I2C_MASTER_SDA_IO           6        // GPIO number for I2C master data
-#define I2C_MASTER_NUM              I2C_NUM_0 // I2C port number for master dev
-#define I2C_MASTER_TX_BUF_DISABLE   0         // I2C master no buffer needed
-#define I2C_MASTER_RX_BUF_DISABLE   0         // I2C master no buffer needed
-#define I2C_MASTER_FREQ_HZ          400000    // I2C master clock frequency
-
 static SemaphoreHandle_t lvgl_mux = NULL;
 static acc_axes_raw_t acc;
 static CircularBuffer buff_x, buff_y, buff_z;
 
-// Function to initialize I2C
-static void i2c_master_init() {
-    //FIXME: Pretty sure we need to make sure we're setting all of the parameters inside this struct
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = I2C_MASTER_SDA_IO;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = I2C_MASTER_SCL_IO;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
-    i2c_param_config(I2C_MASTER_NUM, &conf);
-    i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-}
+#define I2C_MASTER_NUM              I2C_NUM_0 // I2C port number for master dev
 
 static void increase_lvgl_tick_cb(void *arg)
 {
@@ -103,10 +83,6 @@ void lvgl_drive_task(void *arg)
     ESP_LOGI(TAG, "Creating lvgl mutex");
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
-
-    // Initialize I2C
-    ESP_LOGI(TAG, "Initializing I2C");
-    i2c_master_init();
 
     // Configure gpio 0 as input
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
