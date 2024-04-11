@@ -5,7 +5,8 @@ idf_component_register(
         generated_component/ui.c
         generated_component/components/ui_comp_hook.c
         generated_component/ui_helpers.c
-        # generated_component/ui_events.c
+
+        screen_1_cb.c
 
     INCLUDE_DIRS 
         "include"

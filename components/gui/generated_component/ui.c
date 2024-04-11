@@ -12,6 +12,7 @@
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
 lv_obj_t * ui_Screen1;
+void ui_event_accelerometer_en_sw(lv_event_t * e);
 lv_obj_t * ui_accelerometer_en_sw;
 lv_obj_t * ui_x_display_bar;
 lv_obj_t * ui_y_display_bar;
@@ -39,6 +40,24 @@ lv_obj_t * ui____initial_actions0;
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
+void ui_event_accelerometer_en_sw(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_VALUE_CHANGED) {
+        accelerometer_en_sw_cb(e);
+    }
+    if(event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target, LV_STATE_CHECKED)) {
+        _ui_opacity_set(ui_x_display_bar, 40);
+        _ui_opacity_set(ui_y_display_bar, 40);
+        _ui_opacity_set(ui_z_display_bar, 40);
+    }
+    if(event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target, LV_STATE_CHECKED)) {
+        _ui_opacity_set(ui_x_display_bar, 255);
+        _ui_opacity_set(ui_y_display_bar, 255);
+        _ui_opacity_set(ui_z_display_bar, 255);
+    }
+}
 
 ///////////////////// SCREENS ////////////////////
 

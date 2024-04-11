@@ -85,4 +85,6 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_align(ui_off_label, LV_ALIGN_CENTER);
     lv_label_set_text(ui_off_label, "OFF");
 
+    lv_obj_add_event_cb(ui_accelerometer_en_sw, ui_event_accelerometer_en_sw, LV_EVENT_ALL, NULL);
+
 }

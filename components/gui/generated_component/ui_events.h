@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+void accelerometer_en_sw_cb(lv_event_t * e);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
