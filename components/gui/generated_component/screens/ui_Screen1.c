@@ -14,7 +14,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_accelerometer_en_sw, 50);
     lv_obj_set_height(ui_accelerometer_en_sw, 25);
     lv_obj_set_x(ui_accelerometer_en_sw, 0);
-    lv_obj_set_y(ui_accelerometer_en_sw, 52);
+    lv_obj_set_y(ui_accelerometer_en_sw, 75);
     lv_obj_set_align(ui_accelerometer_en_sw, LV_ALIGN_CENTER);
 
 
@@ -24,7 +24,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_x_display_bar, 150);
     lv_obj_set_height(ui_x_display_bar, 10);
     lv_obj_set_x(ui_x_display_bar, 20);
-    lv_obj_set_y(ui_x_display_bar, -40);
+    lv_obj_set_y(ui_x_display_bar, -25);
     lv_obj_set_align(ui_x_display_bar, LV_ALIGN_CENTER);
 
     ui_y_display_bar = lv_bar_create(ui_Screen1);
@@ -33,7 +33,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_y_display_bar, 150);
     lv_obj_set_height(ui_y_display_bar, 10);
     lv_obj_set_x(ui_y_display_bar, 20);
-    lv_obj_set_y(ui_y_display_bar, -10);
+    lv_obj_set_y(ui_y_display_bar, 5);
     lv_obj_set_align(ui_y_display_bar, LV_ALIGN_CENTER);
 
     ui_z_display_bar = lv_bar_create(ui_Screen1);
@@ -42,14 +42,14 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_z_display_bar, 150);
     lv_obj_set_height(ui_z_display_bar, 10);
     lv_obj_set_x(ui_z_display_bar, 20);
-    lv_obj_set_y(ui_z_display_bar, 20);
+    lv_obj_set_y(ui_z_display_bar, 35);
     lv_obj_set_align(ui_z_display_bar, LV_ALIGN_CENTER);
 
     ui_x_label = lv_label_create(ui_Screen1);
     lv_obj_set_width(ui_x_label, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_x_label, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_x_label, -83);
-    lv_obj_set_y(ui_x_label, -43);
+    lv_obj_set_y(ui_x_label, -25);
     lv_obj_set_align(ui_x_label, LV_ALIGN_CENTER);
     lv_label_set_text(ui_x_label, "X");
 
@@ -57,7 +57,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_y_label, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_y_label, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_y_label, -84);
-    lv_obj_set_y(ui_y_label, -13);
+    lv_obj_set_y(ui_y_label, 5);
     lv_obj_set_align(ui_y_label, LV_ALIGN_CENTER);
     lv_label_set_text(ui_y_label, "Y");
 
@@ -65,7 +65,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_z_label, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_z_label, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_z_label, -85);
-    lv_obj_set_y(ui_z_label, 16);
+    lv_obj_set_y(ui_z_label, 35);
     lv_obj_set_align(ui_z_label, LV_ALIGN_CENTER);
     lv_label_set_text(ui_z_label, "Z");
 
@@ -73,7 +73,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_on_label, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_on_label, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_on_label, 50);
-    lv_obj_set_y(ui_on_label, 52);
+    lv_obj_set_y(ui_on_label, 75);
     lv_obj_set_align(ui_on_label, LV_ALIGN_CENTER);
     lv_label_set_text(ui_on_label, "ON");
 
@@ -81,9 +81,18 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_off_label, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_off_label, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_off_label, -50);
-    lv_obj_set_y(ui_off_label, 52);
+    lv_obj_set_y(ui_off_label, 75);
     lv_obj_set_align(ui_off_label, LV_ALIGN_CENTER);
     lv_label_set_text(ui_off_label, "OFF");
+
+    ui_title = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_title, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_title, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_title, 0);
+    lv_obj_set_y(ui_title, -68);
+    lv_obj_set_align(ui_title, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_title, "Accelerometer");
+    lv_obj_set_style_text_font(ui_title, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_add_event_cb(ui_accelerometer_en_sw, ui_event_accelerometer_en_sw, LV_EVENT_ALL, NULL);
 

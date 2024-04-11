@@ -28,9 +28,11 @@ extern lv_obj_t * ui_y_label;
 extern lv_obj_t * ui_z_label;
 extern lv_obj_t * ui_on_label;
 extern lv_obj_t * ui_off_label;
+extern lv_obj_t * ui_title;
 // SCREEN: ui_Screen2
 void ui_Screen2_screen_init(void);
 extern lv_obj_t * ui_Screen2;
+void ui_event____initial_actions0(lv_event_t * e);
 extern lv_obj_t * ui____initial_actions0;
 
 

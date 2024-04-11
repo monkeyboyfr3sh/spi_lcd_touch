@@ -22,11 +22,13 @@ lv_obj_t * ui_y_label;
 lv_obj_t * ui_z_label;
 lv_obj_t * ui_on_label;
 lv_obj_t * ui_off_label;
+lv_obj_t * ui_title;
 
 
 // SCREEN: ui_Screen2
 void ui_Screen2_screen_init(void);
 lv_obj_t * ui_Screen2;
+void ui_event____initial_actions0(lv_event_t * e);
 lv_obj_t * ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
@@ -58,6 +60,14 @@ void ui_event_accelerometer_en_sw(lv_event_t * e)
         _ui_opacity_set(ui_z_display_bar, 255);
     }
 }
+void ui_event____initial_actions0(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_SCREEN_LOAD_START) {
+        _ui_state_modify(ui_accelerometer_en_sw, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
+    }
+}
 
 ///////////////////// SCREENS ////////////////////
 
@@ -70,5 +80,8 @@ void ui_init(void)
     ui_Screen1_screen_init();
     ui_Screen2_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
+    lv_obj_add_event_cb(ui____initial_actions0, ui_event____initial_actions0, LV_EVENT_ALL, NULL);
+
+    lv_disp_load_scr(ui____initial_actions0);
     lv_disp_load_scr(ui_Screen1);
 }
