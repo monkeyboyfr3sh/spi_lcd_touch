@@ -18,15 +18,15 @@ extern "C" {
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
 extern lv_obj_t * ui_Screen1;
-extern lv_obj_t * ui_Switch1;
-extern lv_obj_t * ui_Bar1;
-extern lv_obj_t * ui_Bar2;
-extern lv_obj_t * ui_Bar3;
-extern lv_obj_t * ui_Label1;
-extern lv_obj_t * ui_Label2;
-extern lv_obj_t * ui_Label3;
-extern lv_obj_t * ui_Label4;
-extern lv_obj_t * ui_Label5;
+extern lv_obj_t * ui_accelerometer_en_sw;
+extern lv_obj_t * ui_x_display_bar;
+extern lv_obj_t * ui_y_display_bar;
+extern lv_obj_t * ui_z_display_bar;
+extern lv_obj_t * ui_x_label;
+extern lv_obj_t * ui_y_label;
+extern lv_obj_t * ui_z_label;
+extern lv_obj_t * ui_on_label;
+extern lv_obj_t * ui_off_label;
 // SCREEN: ui_Screen2
 void ui_Screen2_screen_init(void);
 extern lv_obj_t * ui_Screen2;

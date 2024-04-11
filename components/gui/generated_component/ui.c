@@ -12,15 +12,15 @@
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
 lv_obj_t * ui_Screen1;
-lv_obj_t * ui_Switch1;
-lv_obj_t * ui_Bar1;
-lv_obj_t * ui_Bar2;
-lv_obj_t * ui_Bar3;
-lv_obj_t * ui_Label1;
-lv_obj_t * ui_Label2;
-lv_obj_t * ui_Label3;
-lv_obj_t * ui_Label4;
-lv_obj_t * ui_Label5;
+lv_obj_t * ui_accelerometer_en_sw;
+lv_obj_t * ui_x_display_bar;
+lv_obj_t * ui_y_display_bar;
+lv_obj_t * ui_z_display_bar;
+lv_obj_t * ui_x_label;
+lv_obj_t * ui_y_label;
+lv_obj_t * ui_z_label;
+lv_obj_t * ui_on_label;
+lv_obj_t * ui_off_label;
 
 
 // SCREEN: ui_Screen2

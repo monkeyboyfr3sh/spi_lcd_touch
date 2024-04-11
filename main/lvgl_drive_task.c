@@ -123,7 +123,7 @@ void lvgl_drive_task(void *arg)
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_lock(-1)) {
         ui_init();
-        // create_lvgl_ui(plot_display);
+        create_lvgl_ui(plot_display);
         // Release the mutex
         lvgl_unlock();
     }

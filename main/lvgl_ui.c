@@ -5,6 +5,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "ui.h"
 #include "display_hardware_helpers.h"
 
 // Define a threshold for the difference
@@ -55,25 +56,29 @@ double xy_to_degrees(double x, double y) {
 
 // Function to update display based on the chosen display code
 static void update_display_code(float new_x, float new_y, float new_z) {
-    switch (current_display_code)
-    {
-    case meter_display:
-        int angle_deg = (int)xy_to_degrees(new_x, new_y);
-        lv_meter_set_indicator_end_value(meter, indic_base, angle_deg);
-        lv_meter_set_indicator_end_value(meter, indic_accent, angle_deg);
-        // lv_meter_set_indicator_end_value(meter, indic, new_y * 100.0);
-        break;
+    // switch (current_display_code)
+    // {
+    // case meter_display:
+    //     int angle_deg = (int)xy_to_degrees(new_x, new_y);
+    //     lv_meter_set_indicator_end_value(meter, indic_base, angle_deg);
+    //     lv_meter_set_indicator_end_value(meter, indic_accent, angle_deg);
+    //     // lv_meter_set_indicator_end_value(meter, indic, new_y * 100.0);
+    //     break;
 
-    case bar_display:
-        // Display code 2
-        lv_bar_set_value(bar_x, new_x * graph_sensitivity, LV_ANIM_OFF);
-        lv_bar_set_value(bar_y, new_y * graph_sensitivity, LV_ANIM_OFF);
-        lv_bar_set_value(bar_z, new_z * graph_sensitivity, LV_ANIM_OFF);
-        break;
+    // case bar_display:
+    //     // Display code 2
+    //     lv_bar_set_value(bar_x, new_x * graph_sensitivity, LV_ANIM_OFF);
+    //     lv_bar_set_value(bar_y, new_y * graph_sensitivity, LV_ANIM_OFF);
+    //     lv_bar_set_value(bar_z, new_z * graph_sensitivity, LV_ANIM_OFF);
+    //     break;
     
-    default:
-        break;
-    }
+    // default:
+    //     break;
+    // }
+
+    lv_bar_set_value(ui_x_display_bar, new_x * graph_sensitivity, LV_ANIM_OFF);
+    lv_bar_set_value(ui_y_display_bar, new_y * graph_sensitivity, LV_ANIM_OFF);
+    lv_bar_set_value(ui_z_display_bar, new_z * graph_sensitivity, LV_ANIM_OFF);
 }
 
 // Function to switch between display codes
@@ -208,211 +213,214 @@ void create_lvgl_ui(display_mode_t display_mode)
     const int bar_offset = 60;
     static bool setup = false;
 
-    if(setup){
-        setup = false;
-        // Stop animations when switching away from clock display
-        if (current_display_code == clock_display) {
-            lv_timer_del(clock_timer); 
-        }
+    lv_bar_set_range(ui_x_display_bar, -bar_range, bar_range); // Define the range for x
+    lv_bar_set_range(ui_y_display_bar, -bar_range, bar_range); // Define the range for y
+    lv_bar_set_range(ui_z_display_bar, -bar_range, bar_range); // Define the range for z
+    accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
 
-        if (current_display_code == bar_display) {
-            lv_timer_del(accelerometer_sample_draw_timer); 
-        }
+    // if(setup){
+    //     setup = false;
+    //     // Stop animations when switching away from clock display
+    //     if (current_display_code == clock_display) {
+    //         lv_timer_del(clock_timer); 
+    //     }
 
-        if (current_display_code == meter_display) {
-            lv_timer_del(accelerometer_sample_draw_timer); 
-        }
+    //     if (current_display_code == bar_display) {
+    //         lv_timer_del(accelerometer_sample_draw_timer); 
+    //     }
 
-        if (current_display_code == plot_display) {
-            lv_timer_del(accelerometer_sample_draw_timer); 
-        }
-    }
+    //     if (current_display_code == meter_display) {
+    //         lv_timer_del(accelerometer_sample_draw_timer); 
+    //     }
 
-    // Clear the screen before re-creating the UI
-    lv_obj_clean(scr);
+    //     if (current_display_code == plot_display) {
+    //         lv_timer_del(accelerometer_sample_draw_timer); 
+    //     }
+    // }
 
-    switch (display_mode)
-    {
-    case meter_display:
-        // Create a meter
-        meter = lv_meter_create(scr);
-        lv_obj_center(meter);
-        lv_obj_set_size(meter, 240, 240);
+    // // Clear the screen before re-creating the UI
+    // lv_obj_clean(scr);
 
-        /*Add a scale first*/
-        lv_meter_scale_t *scale = lv_meter_add_scale(meter);
+    // switch (display_mode)
+    // {
+    // case meter_display:
+    //     // Create a meter
+    //     meter = lv_meter_create(scr);
+    //     lv_obj_center(meter);
+    //     lv_obj_set_size(meter, 240, 240);
 
-        // xy_to_degrees
-        // lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
-        lv_meter_set_scale_range(meter,scale, 0, 360, 360, 270);
-        lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_color_make(196, 40, 252));
-        // lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_make(255, 192, 203), 10);
-        lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_palette_main(LV_PALETTE_GREY), 10);
+    //     /*Add a scale first*/
+    //     lv_meter_scale_t *scale = lv_meter_add_scale(meter);
 
-        /*Add a needle line indicator*/
-        indic_accent = lv_meter_add_needle_line(meter, scale, 4, lv_color_make(196, 40, 252), -10);
-        indic_base = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -40);
+    //     // xy_to_degrees
+    //     // lv_meter_set_scale_range(meter,scale,-bar_range, bar_range, 300, 300);
+    //     lv_meter_set_scale_range(meter,scale, 0, 360, 360, 270);
+    //     lv_meter_set_scale_ticks(meter, scale, 17 , 2, 10, lv_color_make(196, 40, 252));
+    //     // lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_color_make(255, 192, 203), 10);
+    //     lv_meter_set_scale_major_ticks(meter, scale, 2, 4, 15, lv_palette_main(LV_PALETTE_GREY), 10);
 
-        lv_obj_t * label_tilt = lv_label_create(scr);
+    //     /*Add a needle line indicator*/
+    //     indic_accent = lv_meter_add_needle_line(meter, scale, 4, lv_color_make(196, 40, 252), -10);
+    //     indic_base = lv_meter_add_needle_line(meter, scale, 4, lv_palette_main(LV_PALETTE_GREY), -40);
 
-        // Align labels to the center of the screen
-        lv_obj_align(label_tilt, LV_ALIGN_CENTER, 0, -30);
+    //     lv_obj_t * label_tilt = lv_label_create(scr);
 
-        accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
+    //     // Align labels to the center of the screen
+    //     lv_obj_align(label_tilt, LV_ALIGN_CENTER, 0, -30);
 
-        lv_label_set_text(label_tilt,"XY Tilt");
+    //     accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
 
-        setup = true;
-        break;
+    //     lv_label_set_text(label_tilt,"XY Tilt");
 
-    case bar_display:
-        // Create bars for x, y, and z
-        bar_x = lv_bar_create(scr);
-        bar_y = lv_bar_create(scr);
-        bar_z = lv_bar_create(scr);
+    //     setup = true;
+    //     break;
 
-        // Set range and initial values for each bar
-        lv_bar_set_range(bar_x, -bar_range, bar_range); // Define the range for x
-        lv_obj_align(bar_x, LV_ALIGN_CENTER, 0, -bar_offset);
-        lv_obj_set_width(bar_x, 200); // Set the width of the bar
-        lv_obj_set_height(bar_x, bar_height); // Set the width of the bar
+    // case bar_display:
+    //     // Create bars for x, y, and z
+    //     bar_x = lv_bar_create(scr);
+    //     bar_y = lv_bar_create(scr);
+    //     bar_z = lv_bar_create(scr);
 
-        lv_bar_set_range(bar_y, -bar_range, bar_range); // Define the range for x
-        lv_obj_align(bar_y, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_set_width(bar_y, 200); // Set the width of the bar
-        lv_obj_set_height(bar_y, bar_height); // Set the width of the bar
+    //     // Set range and initial values for each bar
+    //     lv_bar_set_range(bar_x, -bar_range, bar_range); // Define the range for x
+    //     lv_obj_align(bar_x, LV_ALIGN_CENTER, 0, -bar_offset);
+    //     lv_obj_set_width(bar_x, 200); // Set the width of the bar
+    //     lv_obj_set_height(bar_x, bar_height); // Set the width of the bar
 
-        lv_bar_set_range(bar_z, -bar_range, bar_range); // Define the range for x
-        lv_obj_align(bar_z, LV_ALIGN_CENTER, 0, bar_offset);
-        lv_obj_set_width(bar_z, 200); // Set the width of the bar
-        lv_obj_set_height(bar_z, bar_height); // Set the width of the bar
+    //     lv_obj_align(bar_y, LV_ALIGN_CENTER, 0, 0);
+    //     lv_obj_set_width(bar_y, 200); // Set the width of the bar
+    //     lv_obj_set_height(bar_y, bar_height); // Set the width of the bar
 
-        // Create text labels
-        label_x = lv_label_create(scr);
-        label_y = lv_label_create(scr);
-        label_z = lv_label_create(scr);
+    //     lv_obj_align(bar_z, LV_ALIGN_CENTER, 0, bar_offset);
+    //     lv_obj_set_width(bar_z, 200); // Set the width of the bar
+    //     lv_obj_set_height(bar_z, bar_height); // Set the width of the bar
 
-        // Align labels to the center of the screen
-        lv_obj_align(label_x, LV_ALIGN_CENTER, 0, -60);
-        lv_obj_align(label_y, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_align(label_z, LV_ALIGN_CENTER, 0, 60);
+    //     // Create text labels
+    //     label_x = lv_label_create(scr);
+    //     label_y = lv_label_create(scr);
+    //     label_z = lv_label_create(scr);
 
-        lv_label_set_text(label_x,"X");
-        lv_label_set_text(label_y,"Y");
-        lv_label_set_text(label_z,"Z");
+    //     // Align labels to the center of the screen
+    //     lv_obj_align(label_x, LV_ALIGN_CENTER, 0, -60);
+    //     lv_obj_align(label_y, LV_ALIGN_CENTER, 0, 0);
+    //     lv_obj_align(label_z, LV_ALIGN_CENTER, 0, 60);
 
-        // Define a style for the labels
-        static lv_style_t label_style;
-        lv_style_init(&label_style);
-        lv_style_set_text_color(&label_style, lv_color_make(255, 255, 255)); // Set text color to red (assuming RGB color format)
+    //     lv_label_set_text(label_x,"X");
+    //     lv_label_set_text(label_y,"Y");
+    //     lv_label_set_text(label_z,"Z");
 
-        // Define a style for the bars
-        static lv_style_t bar_style;
-        lv_style_init(&bar_style);
-        // lv_style_set_bg_color(&bar_style, lv_color_make(0, 255, 0)); // Set background color to green (assuming RGB color format)
+    //     // Define a style for the labels
+    //     static lv_style_t label_style;
+    //     lv_style_init(&label_style);
+    //     lv_style_set_text_color(&label_style, lv_color_make(255, 255, 255)); // Set text color to red (assuming RGB color format)
 
-        // Apply the style to each bar
-        lv_obj_add_style(bar_x, &bar_style, LV_PART_MAIN);
-        lv_obj_add_style(bar_y, &bar_style, LV_PART_MAIN);
-        lv_obj_add_style(bar_z, &bar_style, LV_PART_MAIN);
+    //     // Define a style for the bars
+    //     static lv_style_t bar_style;
+    //     lv_style_init(&bar_style);
+    //     // lv_style_set_bg_color(&bar_style, lv_color_make(0, 255, 0)); // Set background color to green (assuming RGB color format)
 
-        // Apply the style to each label
-        lv_obj_add_style(label_x, &label_style, LV_PART_MAIN );
-        lv_obj_add_style(label_y, &label_style, LV_PART_MAIN );
-        lv_obj_add_style(label_z, &label_style, LV_PART_MAIN );
+    //     // Apply the style to each bar
+    //     lv_obj_add_style(bar_x, &bar_style, LV_PART_MAIN);
+    //     lv_obj_add_style(bar_y, &bar_style, LV_PART_MAIN);
+    //     lv_obj_add_style(bar_z, &bar_style, LV_PART_MAIN);
 
-        accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
+    //     // Apply the style to each label
+    //     lv_obj_add_style(label_x, &label_style, LV_PART_MAIN );
+    //     lv_obj_add_style(label_y, &label_style, LV_PART_MAIN );
+    //     lv_obj_add_style(label_z, &label_style, LV_PART_MAIN );
 
-        setup = true;
-        break;
+    //     accelerometer_sample_draw_timer = lv_timer_create(update_bars, 10, NULL);
 
-    case clock_display:
-        // Create a meter
-        clock_meter = lv_meter_create(scr);
-        lv_obj_center(clock_meter);
-        lv_obj_set_size(clock_meter, 240, 240);
+    //     setup = true;
+    //     break;
 
-        /*Create a scale for the minutes*/
-        /*61 ticks in a 360 degrees range (the last and the first line overlaps)*/
-        lv_meter_scale_t * scale_min = lv_meter_add_scale(clock_meter);
-        lv_meter_set_scale_ticks(clock_meter, scale_min, 61, 1, 10, lv_palette_main(LV_PALETTE_GREY));
-        lv_meter_set_scale_range(clock_meter, scale_min, 0, 600, 360, 270);
+    // case clock_display:
+    //     // Create a meter
+    //     clock_meter = lv_meter_create(scr);
+    //     lv_obj_center(clock_meter);
+    //     lv_obj_set_size(clock_meter, 240, 240);
 
-        /*Create another scale for the hours. It's only visual and contains only major ticks*/
-        lv_meter_scale_t * scale_hour = lv_meter_add_scale(clock_meter);
-        lv_meter_set_scale_ticks(clock_meter, scale_hour, 12, 0, 0, lv_palette_main(LV_PALETTE_GREY));               /*12 ticks*/
-        lv_meter_set_scale_major_ticks(clock_meter, scale_hour, 1, 2, 20, lv_color_black(), 10);    /*Every tick is major*/
-        lv_meter_set_scale_range(clock_meter, scale_hour, 1, 12, 330, 300);       /*[1..12] values in an almost full circle*/
+    //     /*Create a scale for the minutes*/
+    //     /*61 ticks in a 360 degrees range (the last and the first line overlaps)*/
+    //     lv_meter_scale_t * scale_min = lv_meter_add_scale(clock_meter);
+    //     lv_meter_set_scale_ticks(clock_meter, scale_min, 61, 1, 10, lv_palette_main(LV_PALETTE_GREY));
+    //     lv_meter_set_scale_range(clock_meter, scale_min, 0, 600, 360, 270);
 
-        LV_IMG_DECLARE(img_hand)
+    //     /*Create another scale for the hours. It's only visual and contains only major ticks*/
+    //     lv_meter_scale_t * scale_hour = lv_meter_add_scale(clock_meter);
+    //     lv_meter_set_scale_ticks(clock_meter, scale_hour, 12, 0, 0, lv_palette_main(LV_PALETTE_GREY));               /*12 ticks*/
+    //     lv_meter_set_scale_major_ticks(clock_meter, scale_hour, 1, 2, 20, lv_color_black(), 10);    /*Every tick is major*/
+    //     lv_meter_set_scale_range(clock_meter, scale_hour, 1, 12, 330, 300);       /*[1..12] values in an almost full circle*/
 
-        /*Add a the hands from images*/
-        indic_min = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
-        indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
+    //     LV_IMG_DECLARE(img_hand)
 
-        clock_timer = lv_timer_create(set_clock, 100, NULL);
-        setup = true;
-        break;
+    //     /*Add a the hands from images*/
+    //     indic_min = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
+    //     indic_hour = lv_meter_add_needle_img(clock_meter, scale_min, &img_hand, 5, 5);
+
+    //     clock_timer = lv_timer_create(set_clock, 100, NULL);
+    //     setup = true;
+    //     break;
     
-    case plot_display:
-        /* Create a chart */
-        chart = lv_chart_create(lv_scr_act());
-        lv_obj_set_size(chart, 200, 150);
-        lv_obj_center(chart);
-        lv_chart_set_type(chart, LV_CHART_TYPE_LINE);   /* Show lines and points too */
+    // case plot_display:
+    //     /* Create a chart */
+    //     chart = lv_chart_create(lv_scr_act());
+    //     lv_obj_set_size(chart, 200, 150);
+    //     lv_obj_center(chart);
+    //     lv_chart_set_type(chart, LV_CHART_TYPE_LINE);   /* Show lines and points too */
 
-        // /* Set the range for the primary axis */
-        lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, -bar_range, bar_range);
-        lv_chart_set_point_count(chart, 100);
+    //     // /* Set the range for the primary axis */
+    //     lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, -bar_range, bar_range);
+    //     lv_chart_set_point_count(chart, 100);
 
-        /* Add data series for x, y, and z */
-        ser1 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_RED), LV_CHART_AXIS_PRIMARY_Y);
-        ser2 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_GREEN), LV_CHART_AXIS_PRIMARY_Y);
-        ser3 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_BLUE), LV_CHART_AXIS_PRIMARY_Y);
+    //     /* Add data series for x, y, and z */
+    //     ser1 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_RED), LV_CHART_AXIS_PRIMARY_Y);
+    //     ser2 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_GREEN), LV_CHART_AXIS_PRIMARY_Y);
+    //     ser3 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_BLUE), LV_CHART_AXIS_PRIMARY_Y);
 
-        accelerometer_sample_draw_timer = lv_timer_create(update_plot, 50, NULL);
+    //     accelerometer_sample_draw_timer = lv_timer_create(update_plot, 50, NULL);
         
-        setup = true;
-        break;
+    //     setup = true;
+    //     break;
 
-    case slider_display:
-        /*Create 4 sliders to adjust RGB color and re-color intensity*/
-        red_slider = create_slider(lv_palette_main(LV_PALETTE_RED));
-        green_slider = create_slider(lv_palette_main(LV_PALETTE_GREEN));
-        blue_slider = create_slider(lv_palette_main(LV_PALETTE_BLUE));
-        intense_slider = create_slider(lv_palette_main(LV_PALETTE_GREY));
+    // case slider_display:
+    //     /*Create 4 sliders to adjust RGB color and re-color intensity*/
+    //     red_slider = create_slider(lv_palette_main(LV_PALETTE_RED));
+    //     green_slider = create_slider(lv_palette_main(LV_PALETTE_GREEN));
+    //     blue_slider = create_slider(lv_palette_main(LV_PALETTE_BLUE));
+    //     intense_slider = create_slider(lv_palette_main(LV_PALETTE_GREY));
 
-        lv_slider_set_value(red_slider, LV_OPA_20, LV_ANIM_OFF);
-        lv_slider_set_value(green_slider, LV_OPA_90, LV_ANIM_OFF);
-        lv_slider_set_value(blue_slider, LV_OPA_60, LV_ANIM_OFF);
-        lv_slider_set_value(intense_slider, LV_OPA_50, LV_ANIM_OFF);
+    //     lv_slider_set_value(red_slider, LV_OPA_20, LV_ANIM_OFF);
+    //     lv_slider_set_value(green_slider, LV_OPA_90, LV_ANIM_OFF);
+    //     lv_slider_set_value(blue_slider, LV_OPA_60, LV_ANIM_OFF);
+    //     lv_slider_set_value(intense_slider, LV_OPA_50, LV_ANIM_OFF);
 
-        lv_obj_align(red_slider, LV_ALIGN_LEFT_MID, 25, 0);
-        lv_obj_align_to(green_slider, red_slider, LV_ALIGN_OUT_RIGHT_MID, 25, 0);
-        lv_obj_align_to(blue_slider, green_slider, LV_ALIGN_OUT_RIGHT_MID, 25, 0);
-        lv_obj_align_to(intense_slider, blue_slider, LV_ALIGN_OUT_RIGHT_MID, 25, 0);
+    //     lv_obj_align(red_slider, LV_ALIGN_LEFT_MID, 25, 0);
+    //     lv_obj_align_to(green_slider, red_slider, LV_ALIGN_OUT_RIGHT_MID, 25, 0);
+    //     lv_obj_align_to(blue_slider, green_slider, LV_ALIGN_OUT_RIGHT_MID, 25, 0);
+    //     lv_obj_align_to(intense_slider, blue_slider, LV_ALIGN_OUT_RIGHT_MID, 25, 0);
 
-        /*Now create the actual image*/
-        LV_IMG_DECLARE(img_cogwheel_argb)
-        img1 = lv_img_create(lv_scr_act());
-        lv_img_set_src(img1, &img_cogwheel_argb);
-        lv_obj_align(img1, LV_ALIGN_RIGHT_MID, -20, 0);
+    //     /*Now create the actual image*/
+    //     LV_IMG_DECLARE(img_cogwheel_argb)
+    //     img1 = lv_img_create(lv_scr_act());
+    //     lv_img_set_src(img1, &img_cogwheel_argb);
+    //     lv_obj_align(img1, LV_ALIGN_RIGHT_MID, -20, 0);
 
-        lv_event_send(intense_slider, LV_EVENT_VALUE_CHANGED, NULL);
-        setup = true;
-        break;
+    //     lv_event_send(intense_slider, LV_EVENT_VALUE_CHANGED, NULL);
+    //     setup = true;
+    //     break;
 
-    default:
-        display_mode = display_mode_unknown;
-        break;
-    }
+    // default:
+    //     display_mode = display_mode_unknown;
+    //     break;
+    // }
 
-    btn = lv_btn_create(scr);
-    lv_obj_t * lbl = lv_label_create(btn);
-    lv_label_set_text_static(lbl, LV_SYMBOL_RIGHT"");
-    lv_obj_align(btn, LV_ALIGN_OUT_BOTTOM_MID, 100, 200);
-    /*Button event*/
-    lv_obj_add_event_cb(btn, btn_cb, LV_EVENT_CLICKED, disp);
-    // Update display mode var
-    current_display_code = display_mode;
+    // btn = lv_btn_create(scr);
+    // lv_obj_t * lbl = lv_label_create(btn);
+    // lv_label_set_text_static(lbl, LV_SYMBOL_RIGHT"");
+    // lv_obj_align(btn, LV_ALIGN_OUT_BOTTOM_MID, 100, 200);
+    // /*Button event*/
+    // lv_obj_add_event_cb(btn, btn_cb, LV_EVENT_CLICKED, disp);
+    // // Update display mode var
+    // current_display_code = display_mode;
 }
