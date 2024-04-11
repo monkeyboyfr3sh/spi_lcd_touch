@@ -20,6 +20,7 @@
 #include "lvgl_ui.h"
 #include "circular_integrator.h"
 #include "display_hardware_helpers.h"
+#include "ui.h"
 
 static const char * TAG = "lvgl-drive";
 
@@ -121,7 +122,8 @@ void lvgl_drive_task(void *arg)
     ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_lock(-1)) {
-        create_lvgl_ui(plot_display);
+        ui_init();
+        // create_lvgl_ui(plot_display);
         // Release the mutex
         lvgl_unlock();
     }
@@ -177,7 +179,7 @@ void lvgl_drive_task(void *arg)
                 last_switch_time = xTaskGetTickCount();
 
                 // Update display code
-                cycle_display_code();
+                // cycle_display_code();
             }
 
             // Release the mutex
