@@ -10,5 +10,43 @@ void ui_Screen2_screen_init(void)
     ui_Screen2 = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_Screen2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
+    ui_Dropdown1 = lv_dropdown_create(ui_Screen2);
+    lv_dropdown_set_options(ui_Dropdown1, "Win11 Dev\nWin10 Game\nZorin OS");
+    lv_obj_set_width(ui_Dropdown1, 150);
+    lv_obj_set_height(ui_Dropdown1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Dropdown1, 0);
+    lv_obj_set_y(ui_Dropdown1, 10);
+    lv_obj_set_align(ui_Dropdown1, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Dropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+
+
+
+    ui_Dropdown2 = lv_dropdown_create(ui_Screen2);
+    lv_dropdown_set_options(ui_Dropdown2, "Start\nStop");
+    lv_obj_set_width(ui_Dropdown2, 150);
+    lv_obj_set_height(ui_Dropdown2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Dropdown2, 0);
+    lv_obj_set_y(ui_Dropdown2, 50);
+    lv_obj_set_align(ui_Dropdown2, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Dropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+
+
+
+    ui_Spinner2 = lv_spinner_create(ui_Screen2, 1000, 90);
+    lv_obj_set_width(ui_Spinner2, 80);
+    lv_obj_set_height(ui_Spinner2, 80);
+    lv_obj_set_x(ui_Spinner2, -4);
+    lv_obj_set_y(ui_Spinner2, -55);
+    lv_obj_set_align(ui_Spinner2, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Spinner2, LV_OBJ_FLAG_CLICKABLE);      /// Flags
+
+    ui_ImgButton1 = lv_imgbtn_create(ui_Screen2);
+    lv_obj_set_height(ui_ImgButton1, 23);
+    lv_obj_set_width(ui_ImgButton1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_x(ui_ImgButton1, 0);
+    lv_obj_set_y(ui_ImgButton1, 90);
+    lv_obj_set_align(ui_ImgButton1, LV_ALIGN_CENTER);
+
+    lv_obj_add_event_cb(ui_Screen2, ui_event_Screen2, LV_EVENT_ALL, NULL);
 
 }

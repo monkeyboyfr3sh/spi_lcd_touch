@@ -17,6 +17,7 @@ extern "C" {
 
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
+void ui_event_Screen1(lv_event_t * e);
 extern lv_obj_t * ui_Screen1;
 void ui_event_accelerometer_en_sw(lv_event_t * e);
 extern lv_obj_t * ui_accelerometer_en_sw;
@@ -31,7 +32,18 @@ extern lv_obj_t * ui_off_label;
 extern lv_obj_t * ui_title;
 // SCREEN: ui_Screen2
 void ui_Screen2_screen_init(void);
+void ui_event_Screen2(lv_event_t * e);
 extern lv_obj_t * ui_Screen2;
+extern lv_obj_t * ui_Dropdown1;
+extern lv_obj_t * ui_Dropdown2;
+extern lv_obj_t * ui_Spinner2;
+extern lv_obj_t * ui_ImgButton1;
+// SCREEN: ui_Screen3
+void ui_Screen3_screen_init(void);
+void ui_event_Screen3(lv_event_t * e);
+extern lv_obj_t * ui_Screen3;
+extern lv_obj_t * ui_brightness_option;
+extern lv_obj_t * ui_brightness_slider;
 void ui_event____initial_actions0(lv_event_t * e);
 extern lv_obj_t * ui____initial_actions0;
 

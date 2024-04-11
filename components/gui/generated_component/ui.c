@@ -11,6 +11,7 @@
 
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
+void ui_event_Screen1(lv_event_t * e);
 lv_obj_t * ui_Screen1;
 void ui_event_accelerometer_en_sw(lv_event_t * e);
 lv_obj_t * ui_accelerometer_en_sw;
@@ -27,7 +28,20 @@ lv_obj_t * ui_title;
 
 // SCREEN: ui_Screen2
 void ui_Screen2_screen_init(void);
+void ui_event_Screen2(lv_event_t * e);
 lv_obj_t * ui_Screen2;
+lv_obj_t * ui_Dropdown1;
+lv_obj_t * ui_Dropdown2;
+lv_obj_t * ui_Spinner2;
+lv_obj_t * ui_ImgButton1;
+
+
+// SCREEN: ui_Screen3
+void ui_Screen3_screen_init(void);
+void ui_event_Screen3(lv_event_t * e);
+lv_obj_t * ui_Screen3;
+lv_obj_t * ui_brightness_option;
+lv_obj_t * ui_brightness_slider;
 void ui_event____initial_actions0(lv_event_t * e);
 lv_obj_t * ui____initial_actions0;
 
@@ -42,6 +56,19 @@ lv_obj_t * ui____initial_actions0;
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
+void ui_event_Screen1(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_LEFT) {
+        lv_indev_wait_release(lv_indev_get_act());
+        _ui_screen_change(&ui_Screen2, LV_SCR_LOAD_ANIM_MOVE_LEFT, 150, 0, &ui_Screen2_screen_init);
+    }
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_RIGHT) {
+        lv_indev_wait_release(lv_indev_get_act());
+        _ui_screen_change(&ui_Screen3, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 150, 0, &ui_Screen3_screen_init);
+    }
+}
 void ui_event_accelerometer_en_sw(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -58,6 +85,24 @@ void ui_event_accelerometer_en_sw(lv_event_t * e)
         _ui_opacity_set(ui_x_display_bar, 255);
         _ui_opacity_set(ui_y_display_bar, 255);
         _ui_opacity_set(ui_z_display_bar, 255);
+    }
+}
+void ui_event_Screen2(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_RIGHT) {
+        lv_indev_wait_release(lv_indev_get_act());
+        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_FADE_ON, 150, 0, &ui_Screen1_screen_init);
+    }
+}
+void ui_event_Screen3(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_LEFT) {
+        lv_indev_wait_release(lv_indev_get_act());
+        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_FADE_ON, 150, 0, &ui_Screen1_screen_init);
     }
 }
 void ui_event____initial_actions0(lv_event_t * e)
@@ -79,6 +124,7 @@ void ui_init(void)
     lv_disp_set_theme(dispp, theme);
     ui_Screen1_screen_init();
     ui_Screen2_screen_init();
+    ui_Screen3_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_obj_add_event_cb(ui____initial_actions0, ui_event____initial_actions0, LV_EVENT_ALL, NULL);
 
