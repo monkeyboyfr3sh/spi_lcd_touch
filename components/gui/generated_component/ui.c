@@ -30,10 +30,12 @@ lv_obj_t * ui_title;
 void ui_Screen2_screen_init(void);
 void ui_event_Screen2(lv_event_t * e);
 lv_obj_t * ui_Screen2;
-lv_obj_t * ui_Dropdown1;
-lv_obj_t * ui_Dropdown2;
-lv_obj_t * ui_Spinner2;
-lv_obj_t * ui_ImgButton1;
+void ui_event_connect_button(lv_event_t * e);
+lv_obj_t * ui_connect_button;
+lv_obj_t * ui_os_select_dropdown;
+lv_obj_t * ui_command_dropdown;
+lv_obj_t * ui_status_spiner;
+lv_obj_t * ui_status_label;
 
 
 // SCREEN: ui_Screen3
@@ -94,6 +96,18 @@ void ui_event_Screen2(lv_event_t * e)
     if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_RIGHT) {
         lv_indev_wait_release(lv_indev_get_act());
         _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_FADE_ON, 150, 0, &ui_Screen1_screen_init);
+    }
+}
+void ui_event_connect_button(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_flag_modify(ui_connect_button, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+        _ui_flag_modify(ui_os_select_dropdown, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+        _ui_flag_modify(ui_command_dropdown, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+        _ui_flag_modify(ui_status_spiner, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+        _ui_flag_modify(ui_status_label, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
     }
 }
 void ui_event_Screen3(lv_event_t * e)

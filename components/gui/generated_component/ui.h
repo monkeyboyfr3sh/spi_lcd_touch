@@ -34,10 +34,12 @@ extern lv_obj_t * ui_title;
 void ui_Screen2_screen_init(void);
 void ui_event_Screen2(lv_event_t * e);
 extern lv_obj_t * ui_Screen2;
-extern lv_obj_t * ui_Dropdown1;
-extern lv_obj_t * ui_Dropdown2;
-extern lv_obj_t * ui_Spinner2;
-extern lv_obj_t * ui_ImgButton1;
+void ui_event_connect_button(lv_event_t * e);
+extern lv_obj_t * ui_connect_button;
+extern lv_obj_t * ui_os_select_dropdown;
+extern lv_obj_t * ui_command_dropdown;
+extern lv_obj_t * ui_status_spiner;
+extern lv_obj_t * ui_status_label;
 // SCREEN: ui_Screen3
 void ui_Screen3_screen_init(void);
 void ui_event_Screen3(lv_event_t * e);
@@ -48,6 +50,7 @@ void ui_event____initial_actions0(lv_event_t * e);
 extern lv_obj_t * ui____initial_actions0;
 
 
+LV_IMG_DECLARE(ui_img_connect_small_png);    // assets/connect_small.png
 
 
 
