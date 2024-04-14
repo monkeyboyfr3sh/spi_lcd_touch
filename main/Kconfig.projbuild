@@ -38,3 +38,18 @@ menu "Example Configuration"
     endchoice
 
 endmenu
+
+menu "Wifi Configuration"
+
+    config IPV4
+        bool "IPV4"
+        default y
+        depends on LWIP_IPV4
+
+    config IPV6
+        bool "IPV6"
+        default n
+        select CONNECT_IPV6
+
+endmenu
+
