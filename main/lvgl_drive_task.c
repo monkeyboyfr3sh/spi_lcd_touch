@@ -21,6 +21,7 @@
 #include "circular_integrator.h"
 #include "display_hardware_helpers.h"
 #include "ui.h"
+#include "ssh_task.h"
 
 static const char * TAG = "lvgl-drive";
 
@@ -92,7 +93,7 @@ void lvgl_drive_task(void *arg)
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
 
     ESP_LOGI(TAG, "Initializing filters");
-    static size_t buff_len = 100;
+    static size_t buff_len = 64;
     initializeCircularBuffer(&buff_x, buff_len);
     initializeCircularBuffer(&buff_y, buff_len);
     initializeCircularBuffer(&buff_z, buff_len);
@@ -167,7 +168,7 @@ void lvgl_drive_task(void *arg)
     bool curr_btn_lvl = true;
     while (1) {
         
-        // Lock the mutex due to the LVGL APIs are not thread-safe
+        // // Lock the mutex due to the LVGL APIs are not thread-safe
         if (lvgl_lock(-1)) {
             lv_timer_handler();
 
@@ -179,6 +180,8 @@ void lvgl_drive_task(void *arg)
             ) {
                 last_switch_time = xTaskGetTickCount();
 
+                char * cmd = "qm list";
+                run_ssh_task_blocked(cmd);
                 // Update display code
                 // cycle_display_code();
             }

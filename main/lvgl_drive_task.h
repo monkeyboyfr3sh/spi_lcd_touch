@@ -1,6 +1,6 @@
 #pragma once
 
-#define LVGL_SAMPLE_PERIOD_US          1000
+#define LVGL_SAMPLE_PERIOD_US          2500
 #define LVGL_UPDATE_PERIOD_MS          10
 #define EXAMPLE_LVGL_TICK_PERIOD_MS    5
 #define EXAMPLE_LVGL_TASK_MAX_DELAY_MS 5
