@@ -9,6 +9,7 @@ idf_component_register(
         generated_component/images/ui_img_connect_small_png.c
 
         screen_1_cb.c
+        screen_2_cb.c
 
     INCLUDE_DIRS 
         "include"
@@ -17,7 +18,7 @@ idf_component_register(
     REQUIRES
         driver
         lvgl
-        
+        ssh_task
+
     PRIV_REQUIRES
-    
 )

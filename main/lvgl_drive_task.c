@@ -37,8 +37,16 @@ static void increase_lvgl_tick_cb(void *arg)
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
-static void lvgl_update_cb(void *arg)
+static void sample_qmi8658_cb(void *arg)
 {
+    // Read accelerometer
+    qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
+
+    // Add samples to buffer
+    addSample(&buff_x, acc.x);
+    addSample(&buff_y, acc.y);
+    addSample(&buff_z, acc.z);
+
     int avg_x = getAccumulatedSum(&buff_x)/buff_x.size;
     int avg_y = getAccumulatedSum(&buff_y)/buff_y.size;
     int avg_z = getAccumulatedSum(&buff_z)/buff_z.size;
@@ -52,17 +60,6 @@ static void lvgl_update_cb(void *arg)
 
     // Update UI
     set_accelerometer_data(x, y, z);
-}
-
-static void sample_qmi8658_cb(void *arg)
-{
-    // Read accelerometer
-    qmi8658_read_accelerometer(I2C_MASTER_NUM, &acc);
-
-    // Add samples to buffer
-    addSample(&buff_x, acc.x);
-    addSample(&buff_y, acc.y);
-    addSample(&buff_z, acc.z);
 }
 
 bool lvgl_lock(int timeout_ms)
@@ -109,17 +106,6 @@ void lvgl_drive_task(void *arg)
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
 
-    ESP_LOGI(TAG, "Install LVGL update timer");
-    // Tick interface for LVGL (using esp_timer to generate periodic event)
-    const esp_timer_create_args_t lvgl_update_timer_args = {
-        .callback = &lvgl_update_cb,
-        .name = "lvgl_update"
-    };
-
-    esp_timer_handle_t lvgl_update_timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_update_timer_args, &lvgl_update_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_update_timer, LVGL_UPDATE_PERIOD_MS * 1000));
-
     ESP_LOGI(TAG, "Creating UI");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_lock(-1)) {
@@ -163,14 +149,19 @@ void lvgl_drive_task(void *arg)
     TickType_t last_switch_time = xTaskGetTickCount();
 
     ESP_LOGI(TAG, "Running QMI8658 sample loop");
+    const uint32_t normal_task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+    const uint32_t min_task_delay_ms = 0.5*EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     bool prev_btn_lvl = true;
     bool curr_btn_lvl = true;
     while (1) {
         
+        // Update task delay
+        task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+        
         // // Lock the mutex due to the LVGL APIs are not thread-safe
         if (lvgl_lock(-1)) {
-            lv_timer_handler();
+            task_delay_ms = lv_timer_handler();
 
             prev_btn_lvl = curr_btn_lvl;
             curr_btn_lvl = gpio_get_level(GPIO_NUM_0);
@@ -180,8 +171,6 @@ void lvgl_drive_task(void *arg)
             ) {
                 last_switch_time = xTaskGetTickCount();
 
-                char * cmd = "qm list";
-                run_ssh_task_blocked(cmd);
                 // Update display code
                 // cycle_display_code();
             }
@@ -189,7 +178,10 @@ void lvgl_drive_task(void *arg)
             // Release the mutex
             lvgl_unlock();
         }
-        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+
+        // Cap the minimum
+        task_delay_ms = (min_task_delay_ms > task_delay_ms) ? min_task_delay_ms : task_delay_ms; 
+        vTaskDelay(pdMS_TO_TICKS(normal_task_delay_ms));
     }
 
     vTaskDelete(NULL);

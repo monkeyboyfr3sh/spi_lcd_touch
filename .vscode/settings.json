@@ -33,6 +33,10 @@
     "esp_lcd_touch.h": "c",
     "ledc.h": "c",
     "gpio.h": "c",
-    "task.h": "c"
+    "task.h": "c",
+    "ui.h": "c",
+    "ssh_task.h": "c",
+    "chrono": "c",
+    "functional": "c"
   }
 }
