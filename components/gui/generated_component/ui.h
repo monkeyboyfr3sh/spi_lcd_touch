@@ -30,22 +30,21 @@ extern lv_obj_t * ui_z_label;
 extern lv_obj_t * ui_on_label;
 extern lv_obj_t * ui_off_label;
 extern lv_obj_t * ui_title;
-// SCREEN: ui_Screen2
-void ui_Screen2_screen_init(void);
-void ui_event_Screen2(lv_event_t * e);
-extern lv_obj_t * ui_Screen2;
-void ui_event_connect_button(lv_event_t * e);
-extern lv_obj_t * ui_connect_button;
-extern lv_obj_t * ui_os_select_dropdown;
-extern lv_obj_t * ui_command_dropdown;
-extern lv_obj_t * ui_status_spiner;
-extern lv_obj_t * ui_status_label;
 // SCREEN: ui_Screen3
 void ui_Screen3_screen_init(void);
 void ui_event_Screen3(lv_event_t * e);
 extern lv_obj_t * ui_Screen3;
 extern lv_obj_t * ui_brightness_option;
 extern lv_obj_t * ui_brightness_slider;
+// SCREEN: ui_Screen2
+void ui_Screen2_screen_init(void);
+void ui_event_Screen2(lv_event_t * e);
+extern lv_obj_t * ui_Screen2;
+extern lv_obj_t * ui_win11_dev_label;
+void ui_event_win11_start_button(lv_event_t * e);
+extern lv_obj_t * ui_win11_start_button;
+void ui_event_win11_stop_button(lv_event_t * e);
+extern lv_obj_t * ui_win11_stop_button;
 void ui_event____initial_actions0(lv_event_t * e);
 extern lv_obj_t * ui____initial_actions0;
 

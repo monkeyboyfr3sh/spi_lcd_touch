@@ -26,24 +26,23 @@ lv_obj_t * ui_off_label;
 lv_obj_t * ui_title;
 
 
-// SCREEN: ui_Screen2
-void ui_Screen2_screen_init(void);
-void ui_event_Screen2(lv_event_t * e);
-lv_obj_t * ui_Screen2;
-void ui_event_connect_button(lv_event_t * e);
-lv_obj_t * ui_connect_button;
-lv_obj_t * ui_os_select_dropdown;
-lv_obj_t * ui_command_dropdown;
-lv_obj_t * ui_status_spiner;
-lv_obj_t * ui_status_label;
-
-
 // SCREEN: ui_Screen3
 void ui_Screen3_screen_init(void);
 void ui_event_Screen3(lv_event_t * e);
 lv_obj_t * ui_Screen3;
 lv_obj_t * ui_brightness_option;
 lv_obj_t * ui_brightness_slider;
+
+
+// SCREEN: ui_Screen2
+void ui_Screen2_screen_init(void);
+void ui_event_Screen2(lv_event_t * e);
+lv_obj_t * ui_Screen2;
+lv_obj_t * ui_win11_dev_label;
+void ui_event_win11_start_button(lv_event_t * e);
+lv_obj_t * ui_win11_start_button;
+void ui_event_win11_stop_button(lv_event_t * e);
+lv_obj_t * ui_win11_stop_button;
 void ui_event____initial_actions0(lv_event_t * e);
 lv_obj_t * ui____initial_actions0;
 
@@ -89,6 +88,15 @@ void ui_event_accelerometer_en_sw(lv_event_t * e)
         _ui_opacity_set(ui_z_display_bar, 255);
     }
 }
+void ui_event_Screen3(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_LEFT) {
+        lv_indev_wait_release(lv_indev_get_act());
+        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_FADE_ON, 150, 0, &ui_Screen1_screen_init);
+    }
+}
 void ui_event_Screen2(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -98,26 +106,20 @@ void ui_event_Screen2(lv_event_t * e)
         _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_FADE_ON, 150, 0, &ui_Screen1_screen_init);
     }
 }
-void ui_event_connect_button(lv_event_t * e)
+void ui_event_win11_start_button(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t * target = lv_event_get_target(e);
     if(event_code == LV_EVENT_CLICKED) {
-        // _ui_flag_modify(ui_connect_button, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
-        // _ui_flag_modify(ui_os_select_dropdown, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
-        // _ui_flag_modify(ui_command_dropdown, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
-        // _ui_flag_modify(ui_status_spiner, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
-        // _ui_flag_modify(ui_status_label, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
-        connect_button_clicked_cb(e);
+        win11_dev_start_clicked_cb(e);
     }
 }
-void ui_event_Screen3(lv_event_t * e)
+void ui_event_win11_stop_button(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t * target = lv_event_get_target(e);
-    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_LEFT) {
-        lv_indev_wait_release(lv_indev_get_act());
-        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_FADE_ON, 150, 0, &ui_Screen1_screen_init);
+    if(event_code == LV_EVENT_CLICKED) {
+        win11_dev_stop_clicked_cb(e);
     }
 }
 void ui_event____initial_actions0(lv_event_t * e)
@@ -138,8 +140,8 @@ void ui_init(void)
                                                true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
     ui_Screen1_screen_init();
-    ui_Screen2_screen_init();
     ui_Screen3_screen_init();
+    ui_Screen2_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_obj_add_event_cb(ui____initial_actions0, ui_event____initial_actions0, LV_EVENT_ALL, NULL);
 
