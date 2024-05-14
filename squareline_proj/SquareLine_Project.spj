@@ -5264,7 +5264,7 @@
                       {
                         "nid": -1591991376,
                         "strtype": "CALL FUNCTION/Function_name",
-                        "strval": "win11_dev_start_clicked_cb",
+                        "strval": "win11_dev_stop_clicked_cb",
                         "InheritedType": 10
                       },
                       {
@@ -5727,7 +5727,7 @@
     "theme_color2": 0,
     "uiExportFolderPath": "C:\\Users\\monke\\OneDrive\\Documents\\code\\spi_lcd_touch\\components\\gui\\generated_component",
     "projectExportFolderPath": "C:\\Users\\monke\\OneDrive\\Documents\\code\\spi_lcd_touch\\squareline_proj",
-    "backup_cnt": 62,
+    "backup_cnt": 64,
     "autosave_cnt": 0,
     "lvgl_version": "8.3.11",
     "callfuncsexport": "C_FILE",

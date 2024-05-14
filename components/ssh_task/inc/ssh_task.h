@@ -12,10 +12,15 @@
 
 typedef struct ssh_task_input_t {
     EventGroupHandle_t xEventGroup;
-    char * command;
+    // Command tx buffer
+    size_t tx_buffer_size;
+    char * tx_buffer;
+    // rx buffer
+    size_t rx_buffer_size;
+    char * rx_buffer;
 } ssh_task_input_t;
 
-esp_err_t create_ssh_task_input(ssh_task_input_t * task_parameters, char * command);
+esp_err_t create_ssh_task_input(ssh_task_input_t * task_parameters, char * tx_buffer, size_t tx_buffer_len, char * rx_buffer, size_t rx_buffer_len);
 esp_err_t delete_ssh_task_input(ssh_task_input_t * task_parameters);
 void ssh_task(void *pvParameters);
 void ssh_shell_session(void *pvParameters);
@@ -28,7 +33,7 @@ void ssh_shell_session(void *pvParameters);
  * @return Execution result (PASS/FAIL)
  *
  */
-esp_err_t run_ssh_task_blocked(char * command);
+esp_err_t run_ssh_task_blocked(char * tx_buffer, size_t tx_buffer_len, char * rx_buffer, size_t rx_buffer_len );
 
 /**
  * This is a helper that automates the creation of ssh shell session

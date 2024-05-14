@@ -1,6 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
-  "idf.portWin": "COM4",
+  "idf.portWin": "COM7",
   "idf.flashType": "UART",
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
@@ -37,6 +37,7 @@
     "ui.h": "c",
     "ssh_task.h": "c",
     "chrono": "c",
-    "functional": "c"
+    "functional": "c",
+    "in.h": "c"
   }
 }

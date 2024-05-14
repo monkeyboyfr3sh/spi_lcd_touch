@@ -44,7 +44,7 @@ void ssh_task(void *pvParameters)
 
     // Get input
 	ssh_task_input_t * task_parameter = (ssh_task_input_t *)pvParameters;
-	ESP_LOGI(TAG, "Start task_parameter=%s", task_parameter->command);
+	ESP_LOGI(TAG, "Start task_parameter=%s", task_parameter->tx_buffer);
 
 	// SSH Staff
 	int sock;
@@ -81,10 +81,10 @@ void ssh_task(void *pvParameters)
 	}
 
 	// Print the command we're gonna run
-	print_command(task_parameter->command);
+	print_command(task_parameter->tx_buffer);
 
 	// Open SSH channel and exec command
-	channel = exec_ssh_command(session, sock, task_parameter->command);
+	channel = exec_ssh_command(session, sock, task_parameter->tx_buffer);
 	if(channel == NULL ){
 		ESP_LOGE(TAG,"Failed to exec ssh command!");
 		ssh_task_fail(task_parameter);
@@ -116,7 +116,7 @@ void ssh_task(void *pvParameters)
 	disconnect_and_cleanup(session,sock);
 
 	// Complete!
-	ESP_LOGI(TAG, "[%s] done", task_parameter->command);
+	ESP_LOGI(TAG, "[%s] done", task_parameter->tx_buffer);
 	ssh_task_exit(task_parameter);
 }
 
@@ -130,7 +130,7 @@ void ssh_shell_session(void *pvParameters)
 
     // Get input
 	ssh_task_input_t * task_parameter = (ssh_task_input_t *)pvParameters;
-	ESP_LOGI(TAG, "Start task_parameter=%s", task_parameter->command);
+	ESP_LOGI(TAG, "Start task_parameter=%s", task_parameter->tx_buffer);
 
 	// SSH Staff
 	int sock;
@@ -257,11 +257,11 @@ void ssh_shell_session(void *pvParameters)
 	disconnect_and_cleanup(session,sock);
 
 	// Complete!
-	ESP_LOGI(TAG, "[%s] done", task_parameter->command);
+	ESP_LOGI(TAG, "[%s] done", task_parameter->tx_buffer);
 	ssh_task_exit(task_parameter);
 }
 
-esp_err_t create_ssh_task_input(ssh_task_input_t * task_parameters, char * command)
+esp_err_t create_ssh_task_input(ssh_task_input_t * task_parameters, char * tx_buffer, size_t tx_buffer_len, char * rx_buffer, size_t rx_buffer_len )
 {
 	// Create Eventgroup
 	EventGroupHandle_t xEventGroup = xEventGroupCreate();
@@ -270,7 +270,10 @@ esp_err_t create_ssh_task_input(ssh_task_input_t * task_parameters, char * comma
 	
 	ssh_task_input_t input = {
 		.xEventGroup = xEventGroup,
-		.command = command,
+		.tx_buffer = tx_buffer,
+		.tx_buffer_size = tx_buffer_len,
+		.rx_buffer = rx_buffer,
+		.rx_buffer_size = rx_buffer_len
 	};
 	*task_parameters = input;
 
@@ -284,14 +287,14 @@ esp_err_t delete_ssh_task_input(ssh_task_input_t * task_parameters)
 	return ESP_OK;
 }
 
-esp_err_t run_ssh_task_blocked(char * command)
+esp_err_t run_ssh_task_blocked(char * tx_buffer, size_t tx_buffer_len, char * rx_buffer, size_t rx_buffer_len )
 {
     
     esp_err_t ret = ESP_OK;
 
     // Create input for ssh task
     ssh_task_input_t task_parameters;
-    ESP_ERROR_CHECK( create_ssh_task_input((ssh_task_input_t *)&task_parameters, (char *)command));
+    ESP_ERROR_CHECK( create_ssh_task_input((ssh_task_input_t *)&task_parameters, tx_buffer, tx_buffer_len, rx_buffer, rx_buffer_len));
 
     // Execute ssh command
     xTaskCreate(&ssh_task, "SSH", 1024 * 8, (void *)&task_parameters, 2, NULL);
@@ -326,7 +329,9 @@ esp_err_t run_ssh_shell_session_blocked(void)
 
     // Create input for ssh task
     ssh_task_input_t task_parameters;
-    ESP_ERROR_CHECK( create_ssh_task_input((ssh_task_input_t *)&task_parameters, (char *)"dummy"));
+	char tx_buff[32];
+	char rx_buff[32];
+    ESP_ERROR_CHECK( create_ssh_task_input((ssh_task_input_t *)&task_parameters, tx_buff, 32, rx_buff, 32));
 
     // Execute ssh command
     xTaskCreate(&ssh_shell_session, "SSH-SHELL", 1024 * 8, (void *)&task_parameters, 2, NULL);

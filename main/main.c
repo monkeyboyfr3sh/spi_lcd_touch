@@ -43,6 +43,6 @@ void app_main(void)
     ESP_LOGI(TAG, "Creating LVGL task");
     xTaskCreate(lvgl_drive_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
-    char * cmd = &button_command_lut[0][0];
-    run_ssh_task_blocked(cmd);
+    // char * cmd = &button_command_lut[0][0];
+    // run_ssh_task_blocked(cmd);
 }
